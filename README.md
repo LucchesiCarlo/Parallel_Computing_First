@@ -15,3 +15,27 @@ of birds. Those can be seen as a reactive agents that fuses 3 main behaviours:
 
 Other type of behaviours can be added; in this specific case we will limit the maximum speed achieved and avoiding them 
 to exit the visible screen.
+
+### EXTRA Install SFML on Linux
+
+As suggested in the SFML site, to install SFML I used the CMake code that downloads SFML and builds them. But, to do
+it on Linux machine are requested a series of dependencies listed below. Change the command to match the available
+packet
+manager.
+
+```
+sudo apt update
+sudo apt install \
+libxrandr-dev \
+libxcursor-dev \
+libxi-dev \
+libudev-dev \
+libfreetype-dev \
+libflac-dev \
+libvorbis-dev \
+libgl1-mesa-dev \
+libegl1-mesa-dev \
+libfreetype-dev
+``` 
+
+
