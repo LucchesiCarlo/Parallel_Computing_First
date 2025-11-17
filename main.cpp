@@ -13,7 +13,8 @@ struct Boid {
     float vy = 0;
 };
 
-void printBoid(Boid boid, sf::Shape& shape, sf::RenderWindow &window);
+void printBoid(Boid boid, sf::Shape &shape, sf::RenderWindow &window);
+
 inline float squareDistance(Boid a, Boid b);
 
 int main(int argc, char **argv) {
@@ -23,7 +24,6 @@ int main(int argc, char **argv) {
     constexpr unsigned FPS = 60;
     constexpr float MAX_SPEED = 6.f;
     constexpr float MIN_SPEED = 3.f;
-    constexpr int N = 2500;
     constexpr float VISIBLE = 40;
     constexpr float PROTECT = 10;
     constexpr float AVOID = 0.02;
@@ -31,6 +31,26 @@ int main(int argc, char **argv) {
     constexpr float CENTER = 0.00005;
     constexpr float TURN = 0.05;
     constexpr float EPSILON = 0.001;
+
+    int n = 1000;
+    if (argc >= 1) {
+        try {
+            n = std::stoi(argv[1]);
+        }catch (std::exception&) {
+            n = 1000;
+        }
+    }
+    const int N = n;
+
+    double seconds = 10.;
+    if (argc >= 2) {
+        try {
+            seconds = std::stod(argv[2]);
+        }catch (std::exception&) {
+            seconds = 10.;
+        }
+    }
+    const double SECONDS = seconds;
 
     const unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::default_random_engine generator(seed);
@@ -58,6 +78,8 @@ int main(int argc, char **argv) {
 
     sf::RenderWindow window(sf::VideoMode({WIDTH, HEIGHT}), "Boids");
     window.setFramerateLimit(FPS);
+
+    const auto start = std::chrono::high_resolution_clock::now();
     while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>())
@@ -145,10 +167,16 @@ int main(int argc, char **argv) {
                 boids[i].vy = 0;
             }
         }
+
+        auto now = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::duration<double>>(now - start);
+        if (duration.count() > SECONDS) {
+            window.close();
+        }
     }
 }
 
-void printBoid(const Boid boid, sf::Shape& shape, sf::RenderWindow &window) {
+void printBoid(const Boid boid, sf::Shape &shape, sf::RenderWindow &window) {
     shape.setPosition({boid.x, boid.y});
     window.draw(shape);
 }
