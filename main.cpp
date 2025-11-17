@@ -1,7 +1,8 @@
-#include <optional>
-#include <random>
 #include <chrono>
 #include <cmath>
+#include <string>
+#include <optional>
+#include <random>
 #include <SFML/Graphics.hpp>
 
 struct Boid {
@@ -12,7 +13,7 @@ struct Boid {
     float vy = 0;
 };
 
-void printBoid(Boid boid, sf::RenderWindow &window);
+void printBoid(Boid boid, sf::Shape& shape, sf::RenderWindow &window);
 inline float squareDistance(Boid a, Boid b);
 
 int main(int argc, char **argv) {
@@ -22,7 +23,7 @@ int main(int argc, char **argv) {
     constexpr unsigned FPS = 60;
     constexpr float MAX_SPEED = 6.f;
     constexpr float MIN_SPEED = 3.f;
-    constexpr int N = 250;
+    constexpr int N = 2500;
     constexpr float VISIBLE = 40;
     constexpr float PROTECT = 10;
     constexpr float AVOID = 0.02;
@@ -35,18 +36,28 @@ int main(int argc, char **argv) {
     std::default_random_engine generator(seed);
 
     std::unique_ptr<Boid[]> boids(new Boid[N]);
+    /*
+     * Considering that boids number is constant, is better for performance to initialize all circle at once and only
+     * update their positions.
+     */
+    std::unique_ptr<sf::CircleShape[]> shapes(new sf::CircleShape[N]);
 
     for (int i = 0; i < N; i++) {
         boids[i].x = static_cast<float>(generator() % (WIDTH / 2));
         boids[i].y = static_cast<float>(generator() % HEIGHT);
         boids[i].vx = static_cast<float>(generator() % (static_cast<int>(MAX_SPEED - MIN_SPEED))) + MIN_SPEED;
         boids[i].vy = static_cast<float>(generator() % (static_cast<int>(MAX_SPEED - MIN_SPEED))) + MIN_SPEED;
+
+        sf::CircleShape circle(1);
+        circle.setFillColor(sf::Color::Black);
+        circle.setOutlineColor(sf::Color::White);
+        circle.setOutlineThickness(1.f);
+        circle.setOrigin(circle.getGeometricCenter());
+        shapes[i] = circle;
     }
 
     sf::RenderWindow window(sf::VideoMode({WIDTH, HEIGHT}), "Boids");
     window.setFramerateLimit(FPS);
-    int* x = new int(5);
-    *x = 10;
     while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>())
@@ -55,7 +66,7 @@ int main(int argc, char **argv) {
 
         window.clear(sf::Color::Black);
         for (int i = 0; i < N; i++) {
-            printBoid(boids[i], window);
+            printBoid(boids[i], shapes[i], window);
         }
         window.display();
 
@@ -137,15 +148,9 @@ int main(int argc, char **argv) {
     }
 }
 
-void printBoid(const Boid boid, sf::RenderWindow &window) {
-    sf::CircleShape circle(1);
-    circle.setFillColor(sf::Color::Black);
-    circle.setOutlineColor(sf::Color::White);
-    circle.setOutlineThickness(1.f);
-    circle.setPosition({boid.x, boid.y});
-    circle.setOrigin(circle.getGeometricCenter());
-
-    window.draw(circle);
+void printBoid(const Boid boid, sf::Shape& shape, sf::RenderWindow &window) {
+    shape.setPosition({boid.x, boid.y});
+    window.draw(shape);
 }
 
 inline float squareDistance(const Boid a, const Boid b) {
