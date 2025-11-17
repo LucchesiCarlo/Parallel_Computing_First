@@ -1,5 +1,7 @@
 #include <chrono>
 #include <cmath>
+#include <iostream>
+#include <list>
 #include <string>
 #include <optional>
 #include <random>
@@ -33,20 +35,20 @@ int main(int argc, char **argv) {
     constexpr float EPSILON = 0.001;
 
     int n = 1000;
-    if (argc >= 1) {
+    if (argc > 1) {
         try {
             n = std::stoi(argv[1]);
-        }catch (std::exception&) {
+        } catch (std::exception &) {
             n = 1000;
         }
     }
     const int N = n;
 
     double seconds = 10.;
-    if (argc >= 2) {
+    if (argc > 2) {
         try {
             seconds = std::stod(argv[2]);
-        }catch (std::exception&) {
+        } catch (std::exception &) {
             seconds = 10.;
         }
     }
@@ -61,6 +63,7 @@ int main(int argc, char **argv) {
      * update their positions.
      */
     std::unique_ptr<sf::CircleShape[]> shapes(new sf::CircleShape[N]);
+    std::list<double> values;
 
     for (int i = 0; i < N; i++) {
         boids[i].x = static_cast<float>(generator() % (WIDTH / 2));
@@ -92,6 +95,7 @@ int main(int argc, char **argv) {
         }
         window.display();
 
+        auto start_frame = std::chrono::high_resolution_clock::now();
         for (int i = 0; i < N; i++) {
             float close_dx = 0;
             float close_dy = 0;
@@ -167,12 +171,31 @@ int main(int argc, char **argv) {
                 boids[i].vy = 0;
             }
         }
+        auto end_frame = std::chrono::high_resolution_clock::now();
+        auto frame = std::chrono::duration_cast<std::chrono::duration<double>>(end_frame - start_frame).count();
+        values.push_back(frame);
 
         auto now = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::duration<double>>(now - start);
         if (duration.count() > SECONDS) {
             window.close();
         }
+    }
+
+    FILE* output;
+    if (argc > 3) {
+        std::cout << argv[3] << std::endl;
+        output = fopen(argv[3], "w");
+    } else {
+        output = fopen("output.txt", "w");
+    }
+    if (output == nullptr) {
+        std::cerr << "Could not open file due to an error." << std::endl;
+    } else {
+        for (auto value: values) {
+            fprintf(output, "%f,", value);
+        }
+        fclose(output);
     }
 }
 
