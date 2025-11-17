@@ -13,9 +13,12 @@ FetchContent_Declare(SFML
         SYSTEM)
 FetchContent_MakeAvailable(SFML)
 
-add_compile_options("-fsanitize=address,leak,undefined")
-add_link_options("-fsanitize=address,leak,undefined")
-add_compile_options("-g")
+#Probably not the best way to do it
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_options("-fsanitize=address,leak,undefined")
+    add_link_options("-fsanitize=address,leak,undefined")
+    add_compile_options("-g")
+endif ()
 add_executable(First_Assignment main.cpp)
 target_compile_features(First_Assignment PRIVATE cxx_std_17)
 target_link_libraries(First_Assignment PRIVATE SFML::Graphics)

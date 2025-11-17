@@ -45,7 +45,8 @@ int main(int argc, char **argv) {
 
     sf::RenderWindow window(sf::VideoMode({WIDTH, HEIGHT}), "Boids");
     window.setFramerateLimit(FPS);
-
+    int* x = new int(5);
+    *x = 10;
     while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>())
@@ -74,7 +75,7 @@ int main(int argc, char **argv) {
                 if (distance < PROTECT * PROTECT) {
                     close_dx += boids[i].x - boids[j].x;
                     close_dy += boids[i].y - boids[j].y;
-                }else if (distance < VISIBLE * VISIBLE) {
+                } else if (distance < VISIBLE * VISIBLE) {
                     velX += boids[j].vx;
                     velY += boids[j].vy;
                     posX += boids[j].x;
@@ -102,13 +103,13 @@ int main(int argc, char **argv) {
                 boids[i].vy -= TURN;
             }
 
-            const auto speed = static_cast<float> (sqrt(pow(boids[i].vx, 2) + pow(boids[i].vy, 2)));
+            const auto speed = static_cast<float>(sqrt(pow(boids[i].vx, 2) + pow(boids[i].vy, 2)));
             if (speed < EPSILON) {
                 boids[i].vy = MIN_SPEED;
             } else if (speed < MIN_SPEED) {
                 boids[i].vx *= MIN_SPEED / speed;
                 boids[i].vy *= MIN_SPEED / speed;
-            }else if (speed > MAX_SPEED) {
+            } else if (speed > MAX_SPEED) {
                 boids[i].vx *= MAX_SPEED / speed;
                 boids[i].vy *= MAX_SPEED / speed;
             }
