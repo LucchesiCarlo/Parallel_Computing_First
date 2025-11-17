@@ -1,36 +1,46 @@
 #include <optional>
 #include <random>
 #include <chrono>
+#include <cmath>
 #include <SFML/Graphics.hpp>
 
 struct Boid {
-    float x;
-    float y;
+    float x = 0;
+    float y = 0;
 
-    float xv = 0;
-    float yv = 0;
+    float vx = 0;
+    float vy = 0;
 };
 
-void printBoid(Boid boid, sf::RenderWindow& window);
+void printBoid(Boid boid, sf::RenderWindow &window);
+inline float squareDistance(Boid a, Boid b);
 
 int main(int argc, char **argv) {
-    constexpr unsigned WIDTH = 800;
-    constexpr unsigned HEIGHT = 600;
+    constexpr unsigned WIDTH = 1600;
+    constexpr unsigned HEIGHT = 800;
+    constexpr float MARGIN = 75;
     constexpr unsigned FPS = 60;
-    constexpr float MAX_SPEED = 10.f;
-    constexpr int N = 100;
-    constexpr float VISIBLE = 20;
+    constexpr float MAX_SPEED = 6.f;
+    constexpr float MIN_SPEED = 3.f;
+    constexpr int N = 250;
+    constexpr float VISIBLE = 40;
     constexpr float PROTECT = 10;
-    constexpr float AVOID = 10;
+    constexpr float AVOID = 0.02;
+    constexpr float MATCH = 0.02;
+    constexpr float CENTER = 0.00005;
+    constexpr float TURN = 0.05;
+    constexpr float EPSILON = 0.001;
 
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    const unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::default_random_engine generator(seed);
 
     std::unique_ptr<Boid[]> boids(new Boid[N]);
 
-    for(int i = 0; i < N; i++) {
-        boids[i].x = static_cast<float>(generator() % WIDTH);
+    for (int i = 0; i < N; i++) {
+        boids[i].x = static_cast<float>(generator() % (WIDTH / 2));
         boids[i].y = static_cast<float>(generator() % HEIGHT);
+        boids[i].vx = static_cast<float>(generator() % (static_cast<int>(MAX_SPEED - MIN_SPEED))) + MIN_SPEED;
+        boids[i].vy = static_cast<float>(generator() % (static_cast<int>(MAX_SPEED - MIN_SPEED))) + MIN_SPEED;
     }
 
     sf::RenderWindow window(sf::VideoMode({WIDTH, HEIGHT}), "Boids");
@@ -47,11 +57,87 @@ int main(int argc, char **argv) {
             printBoid(boids[i], window);
         }
         window.display();
+
+        for (int i = 0; i < N; i++) {
+            float close_dx = 0;
+            float close_dy = 0;
+
+            int neighbours = 0;
+            float velX = 0;
+            float velY = 0;
+            float posX = 0;
+            float posY = 0;
+            for (int j = 0; j < N; j++) {
+                if (i == j)
+                    continue;
+                const float distance = squareDistance(boids[i], boids[j]);
+                if (distance < PROTECT * PROTECT) {
+                    close_dx += boids[i].x - boids[j].x;
+                    close_dy += boids[i].y - boids[j].y;
+                }else if (distance < VISIBLE * VISIBLE) {
+                    velX += boids[j].vx;
+                    velY += boids[j].vy;
+                    posX += boids[j].x;
+                    posY += boids[j].y;
+                    neighbours++;
+                }
+            }
+            if (neighbours > 0) {
+                velX = velX / static_cast<float>(neighbours);
+                velY = velY / static_cast<float>(neighbours);
+                posX = posX / static_cast<float>(neighbours);
+                posY = posY / static_cast<float>(neighbours);
+            }
+            boids[i].vx += close_dx * AVOID + (velX - boids[i].vx) * MATCH + (posX - boids[i].x) * CENTER;
+            boids[i].vy += close_dy * AVOID + (velY - boids[i].vy) * MATCH + (posY - boids[i].y) * CENTER;
+
+            if (boids[i].x < MARGIN) {
+                boids[i].vx += TURN;
+            } else if (boids[i].x > WIDTH - MARGIN) {
+                boids[i].vx -= TURN;
+            }
+            if (boids[i].y < MARGIN) {
+                boids[i].vy += TURN;
+            } else if (boids[i].y > HEIGHT - MARGIN) {
+                boids[i].vy -= TURN;
+            }
+
+            const auto speed = static_cast<float> (sqrt(pow(boids[i].vx, 2) + pow(boids[i].vy, 2)));
+            if (speed < EPSILON) {
+                boids[i].vy = MIN_SPEED;
+            } else if (speed < MIN_SPEED) {
+                boids[i].vx *= MIN_SPEED / speed;
+                boids[i].vy *= MIN_SPEED / speed;
+            }else if (speed > MAX_SPEED) {
+                boids[i].vx *= MAX_SPEED / speed;
+                boids[i].vy *= MAX_SPEED / speed;
+            }
+        }
+
+        for (int i = 0; i < N; i++) {
+            boids[i].x += boids[i].vx;
+            boids[i].y += boids[i].vy;
+
+            if (boids[i].x < 0) {
+                boids[i].x = 0;
+                boids[i].vx = 0;
+            } else if (boids[i].x > WIDTH) {
+                boids[i].x = WIDTH;
+                boids[i].vx = 0;
+            }
+            if (boids[i].y < 0) {
+                boids[i].y = 0;
+                boids[i].vy = 0;
+            } else if (boids[i].y > HEIGHT) {
+                boids[i].y = HEIGHT;
+                boids[i].vy = 0;
+            }
+        }
     }
 }
 
-void printBoid(Boid boid, sf::RenderWindow& window) {
-    sf::CircleShape circle(5);
+void printBoid(const Boid boid, sf::RenderWindow &window) {
+    sf::CircleShape circle(1);
     circle.setFillColor(sf::Color::Black);
     circle.setOutlineColor(sf::Color::White);
     circle.setOutlineThickness(1.f);
@@ -59,4 +145,8 @@ void printBoid(Boid boid, sf::RenderWindow& window) {
     circle.setOrigin(circle.getGeometricCenter());
 
     window.draw(circle);
+}
+
+inline float squareDistance(const Boid a, const Boid b) {
+    return static_cast<float>(pow((a.x - b.x), 2) + pow(a.y - b.y, 2));
 }
