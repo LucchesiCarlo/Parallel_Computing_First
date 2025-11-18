@@ -4,7 +4,7 @@
 
 #include <string>
 
-void get_parameters(const int argc, char** argv, int& n, double& seconds, int& threads) {
+void get_parameters(const int argc, char **argv, int &n, double &seconds, int &threads) {
     constexpr int N = 1000;
     constexpr double SECONDS = 10.;
     constexpr int THREADS = 10;

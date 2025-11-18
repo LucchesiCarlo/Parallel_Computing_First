@@ -118,8 +118,10 @@ int main(int argc, char **argv) {
             nextBoids[i].x = boids[i].x;
             nextBoids[i].y = boids[i].y;
 
-            nextBoids[i].vx = close_dx * AVOID + (velX - boids[i].vx) * MATCH + (posX - boids[i].x) * CENTER + boids[i].vx;
-            nextBoids[i].vy = close_dy * AVOID + (velY - boids[i].vy) * MATCH + (posY - boids[i].y) * CENTER + boids[i].vy;
+            nextBoids[i].vx = close_dx * AVOID + (velX - boids[i].vx) * MATCH + (posX - boids[i].x) * CENTER + boids[i].
+                              vx;
+            nextBoids[i].vy = close_dy * AVOID + (velY - boids[i].vy) * MATCH + (posY - boids[i].y) * CENTER + boids[i].
+                              vy;
 
             if (nextBoids[i].x < MARGIN) {
                 nextBoids[i].vx += TURN;
@@ -168,7 +170,7 @@ int main(int argc, char **argv) {
         values.push_back(frame);
 
         auto now = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::duration<double>>(now - start);
+        auto duration = std::chrono::duration_cast<std::chrono::duration<double> >(now - start);
         if (duration.count() > SECONDS) {
             window.close();
         }
@@ -176,7 +178,6 @@ int main(int argc, char **argv) {
 
     FILE *output;
     if (argc > 3) {
-        std::cout << argv[3] << std::endl;
         output = fopen(argv[3], "w");
     } else {
         output = fopen("output.txt", "w");
