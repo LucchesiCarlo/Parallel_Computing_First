@@ -2,10 +2,10 @@
 #include <cmath>
 #include <iostream>
 #include <list>
-#include <string>
 #include <optional>
 #include <random>
 #include <SFML/Graphics.hpp>
+#include "helpers.cpp"
 
 struct Boid {
     float x = 0;
@@ -34,30 +34,19 @@ int main(int argc, char **argv) {
     constexpr float TURN = 0.05;
     constexpr float EPSILON = 0.001;
 
-    int n = 1000;
-    if (argc > 1) {
-        try {
-            n = std::stoi(argv[1]);
-        } catch (std::exception &) {
-            n = 1000;
-        }
-    }
-    const int N = n;
+    int n;
+    double seconds;
+    int threads;
 
-    double seconds = 10.;
-    if (argc > 2) {
-        try {
-            seconds = std::stod(argv[2]);
-        } catch (std::exception &) {
-            seconds = 10.;
-        }
-    }
+    get_parameters(argc, argv, n, seconds, threads);
+    const auto N = n;
     const double SECONDS = seconds;
 
     const unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::default_random_engine generator(seed);
 
     std::unique_ptr<Boid[]> boids(new Boid[N]);
+    std::unique_ptr<Boid[]> nextBoids(new Boid[N]);
     /*
      * Considering that boids number is constant, is better for performance to initialize all circle at once and only
      * update their positions.
@@ -66,7 +55,7 @@ int main(int argc, char **argv) {
     std::list<double> values;
 
     for (int i = 0; i < N; i++) {
-        boids[i].x = static_cast<float>(generator() % (WIDTH / 2));
+        boids[i].x = static_cast<float>(generator() % WIDTH);
         boids[i].y = static_cast<float>(generator() % HEIGHT);
         boids[i].vx = static_cast<float>(generator() % (static_cast<int>(MAX_SPEED - MIN_SPEED))) + MIN_SPEED;
         boids[i].vy = static_cast<float>(generator() % (static_cast<int>(MAX_SPEED - MIN_SPEED))) + MIN_SPEED;
@@ -126,32 +115,35 @@ int main(int argc, char **argv) {
                 posX = posX / static_cast<float>(neighbours);
                 posY = posY / static_cast<float>(neighbours);
             }
-            boids[i].vx += close_dx * AVOID + (velX - boids[i].vx) * MATCH + (posX - boids[i].x) * CENTER;
-            boids[i].vy += close_dy * AVOID + (velY - boids[i].vy) * MATCH + (posY - boids[i].y) * CENTER;
+            nextBoids[i].x = boids[i].x;
+            nextBoids[i].y = boids[i].y;
 
-            if (boids[i].x < MARGIN) {
-                boids[i].vx += TURN;
-            } else if (boids[i].x > WIDTH - MARGIN) {
-                boids[i].vx -= TURN;
+            nextBoids[i].vx = close_dx * AVOID + (velX - boids[i].vx) * MATCH + (posX - boids[i].x) * CENTER + boids[i].vx;
+            nextBoids[i].vy = close_dy * AVOID + (velY - boids[i].vy) * MATCH + (posY - boids[i].y) * CENTER + boids[i].vy;
+
+            if (nextBoids[i].x < MARGIN) {
+                nextBoids[i].vx += TURN;
+            } else if (nextBoids[i].x > WIDTH - MARGIN) {
+                nextBoids[i].vx -= TURN;
             }
-            if (boids[i].y < MARGIN) {
-                boids[i].vy += TURN;
-            } else if (boids[i].y > HEIGHT - MARGIN) {
-                boids[i].vy -= TURN;
+            if (nextBoids[i].y < MARGIN) {
+                nextBoids[i].vy += TURN;
+            } else if (nextBoids[i].y > HEIGHT - MARGIN) {
+                nextBoids[i].vy -= TURN;
             }
 
             const auto speed = static_cast<float>(sqrt(pow(boids[i].vx, 2) + pow(boids[i].vy, 2)));
             if (speed < EPSILON) {
-                boids[i].vy = MIN_SPEED;
+                nextBoids[i].vy = MIN_SPEED;
             } else if (speed < MIN_SPEED) {
-                boids[i].vx *= MIN_SPEED / speed;
-                boids[i].vy *= MIN_SPEED / speed;
+                nextBoids[i].vx *= MIN_SPEED / speed;
+                nextBoids[i].vy *= MIN_SPEED / speed;
             } else if (speed > MAX_SPEED) {
-                boids[i].vx *= MAX_SPEED / speed;
-                boids[i].vy *= MAX_SPEED / speed;
+                nextBoids[i].vx *= MAX_SPEED / speed;
+                nextBoids[i].vy *= MAX_SPEED / speed;
             }
         }
-
+        boids.swap(nextBoids);
         for (int i = 0; i < N; i++) {
             boids[i].x += boids[i].vx;
             boids[i].y += boids[i].vy;
@@ -172,7 +164,7 @@ int main(int argc, char **argv) {
             }
         }
         auto end_frame = std::chrono::high_resolution_clock::now();
-        auto frame = std::chrono::duration_cast<std::chrono::duration<double>>(end_frame - start_frame).count();
+        auto frame = std::chrono::duration_cast<std::chrono::duration<double> >(end_frame - start_frame).count();
         values.push_back(frame);
 
         auto now = std::chrono::high_resolution_clock::now();
@@ -182,7 +174,7 @@ int main(int argc, char **argv) {
         }
     }
 
-    FILE* output;
+    FILE *output;
     if (argc > 3) {
         std::cout << argv[3] << std::endl;
         output = fopen(argv[3], "w");
