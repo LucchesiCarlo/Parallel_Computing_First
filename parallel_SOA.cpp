@@ -21,9 +21,6 @@ void printBoid(Boids boid, int i, sf::Shape &shape, sf::RenderWindow &window);
 inline float squareDistance(const Boids &a, int i, int j);
 
 int main(int argc, char **argv) {
-#ifdef CIAO
-    std::cout << "Ciao" << "\n";
-#endif
 #ifdef _OPENMP
     std::cout << "OPEN_MP available" << "\n";
 #endif
