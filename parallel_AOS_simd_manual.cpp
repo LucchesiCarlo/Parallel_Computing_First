@@ -11,9 +11,9 @@
 
 namespace stdx = std::experimental;
 
-using floatv  = stdx::native_simd<float>;
+using floatv = stdx::native_simd<float>;
 using doublev = stdx::rebind_simd_t<double, floatv>;
-using intv    = stdx::rebind_simd_t<int, floatv>;
+using intv = stdx::rebind_simd_t<int, floatv>;
 
 struct Boid {
     float x = 0;
@@ -118,10 +118,10 @@ int main(int argc, char **argv) {
                 floatv visibleDist = VISIBLE * VISIBLE;
                 int j = 0;
                 for (; j < N - 4; j += 4) {
-                    floatv x_positions([boids, j](int i){return boids[j + i].x;});
-                    floatv y_positions([boids, j](int i){return boids[j + i].y;});
-                    floatv x_vel([boids, j](int i){return boids[j + i].vx;});
-                    floatv y_vel([boids, j](int i){return boids[j + i].vy;});
+                    floatv x_positions([boids, j](int i) { return boids[j + i].x; });
+                    floatv y_positions([boids, j](int i) { return boids[j + i].y; });
+                    floatv x_vel([boids, j](int i) { return boids[j + i].vx; });
+                    floatv y_vel([boids, j](int i) { return boids[j + i].vy; });
 
                     floatv distanceX = (current_x - x_positions);
                     floatv distanceY = (current_y - y_positions);

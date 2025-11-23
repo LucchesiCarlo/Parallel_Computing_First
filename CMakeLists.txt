@@ -44,6 +44,10 @@ add_executable(parallel_AOS parallel_AOS.cpp)
 target_compile_features(parallel_AOS PRIVATE cxx_std_17)
 target_link_libraries(parallel_AOS PRIVATE SFML::Graphics)
 
+add_executable(parallel_SOA parallel_SOA.cpp)
+target_compile_features(parallel_SOA PRIVATE cxx_std_17)
+target_link_libraries(parallel_SOA PRIVATE SFML::Graphics)
+
 add_executable(parallel_AOS_simd parallel_AOS_simd.cpp)
 target_compile_features(parallel_AOS_simd PRIVATE cxx_std_17)
 target_link_libraries(parallel_AOS_simd PRIVATE SFML::Graphics)
