@@ -6,6 +6,7 @@
 #include <random>
 #include <SFML/Graphics.hpp>
 #include <omp.h>
+#include <experimental/simd>
 #include "helpers.cpp"
 
 struct Boid {
@@ -18,12 +19,9 @@ struct Boid {
 
 void printBoid(Boid boid, sf::Shape &shape, sf::RenderWindow &window);
 
-inline float squareDistance(const Boid* a, const Boid* b, int i, int j);
+inline float squareDistance(const Boid* a, int i, int j);
 
 int main(int argc, char **argv) {
-#ifdef CIAO
-    std::cout << "Ciao" << "\n";
-#endif
 #ifdef _OPENMP
     std::cout << "OPEN_MP available" << "\n";
 #endif
@@ -107,21 +105,32 @@ int main(int argc, char **argv) {
                 float velY = 0;
                 float posX = 0;
                 float posY = 0;
-                for (int j = 0; j < N; j++) {
-                    if (i == j)
-                        continue;
-                    const float distance = squareDistance(boids, boids, i, j);
-                    if (distance < PROTECT * PROTECT) {
-                        close_dx += boids[i].x - boids[j].x;
-                        close_dy += boids[i].y - boids[j].y;
-                    } else if (distance < VISIBLE * VISIBLE) {
-                        velX += boids[j].vx;
-                        velY += boids[j].vy;
-                        posX += boids[j].x;
-                        posY += boids[j].y;
-                        neighbours++;
-                    }
+
+                int rest = N % 4;
+                for (int j = 0; j < N; j+= 4) {
+                    namespace stdx = std::experimental;
+
+                    using floatv  = stdx::native_simd<float>;
+
+                    const float distance = squareDistance(boids, i, j);
+                    bool protect = (distance < PROTECT * PROTECT);
+                    bool visible = (distance < VISIBLE * VISIBLE) - protect;
+
+                    close_dx += (boids[i].x - boids[j].x) * protect;
+                    close_dy += (boids[i].y - boids[j].y) * protect;
+
+                    velX += boids[j].vx * visible;
+                    velY += boids[j].vy * visible;
+                    posX += boids[j].x * visible;
+                    posY += boids[j].y * visible;
+                    neighbours += visible;
                 }
+                velX -= boids[i].vx;
+                velY -= boids[i].vy;
+                posX -= boids[i].x;
+                posY -= boids[i].y;
+                neighbours--;
+
                 if (neighbours > 0) {
                     velX = velX / static_cast<float>(neighbours);
                     velY = velY / static_cast<float>(neighbours);
@@ -219,6 +228,9 @@ void printBoid(const Boid boid, sf::Shape &shape, sf::RenderWindow &window) {
     window.draw(shape);
 }
 
-inline float squareDistance(const Boid* a, const Boid* b, int i, int j) {
-    return static_cast<float>(pow((a[i].x - b[j].x), 2) + pow(a[i].y - b[j].y, 2));
+#pragma omp declare simd
+inline float squareDistance(const Boid* a, int i, int j) {
+    float dx = a[i].x - a[j].x;
+    float dy = a[i].y - a[j].y;
+    return dx * dx + dy * dy;
 }
