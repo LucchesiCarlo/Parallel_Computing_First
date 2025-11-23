@@ -18,7 +18,7 @@ struct Boid {
 
 void printBoid(Boid boid, sf::Shape &shape, sf::RenderWindow &window);
 
-inline float squareDistance(const Boid* a, int i, int j);
+inline float squareDistance(const Boid *a, int i, int j);
 
 int main(int argc, char **argv) {
 #ifdef _OPENMP
@@ -50,8 +50,8 @@ int main(int argc, char **argv) {
     const unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::default_random_engine generator(seed);
 
-    Boid* boids = new Boid[N];
-    Boid* nextBoids = new Boid[N];
+    Boid *boids = new Boid[N];
+    Boid *nextBoids = new Boid[N];
     /*
      * Considering that boids number is constant, is better for performance to initialize all circle at once and only
      * update their positions.
@@ -104,12 +104,14 @@ int main(int argc, char **argv) {
                 float velY = 0;
                 float posX = 0;
                 float posY = 0;
+
+                const float squareProtect = PROTECT * PROTECT;
+                const float squareVisible = VISIBLE * VISIBLE;
 #pragma omp simd
                 for (int j = 0; j < N; j++) {
-
                     const float distance = squareDistance(boids, i, j);
-                    bool protect = (distance < PROTECT * PROTECT);
-                    bool visible = (distance < VISIBLE * VISIBLE) - protect;
+                    bool protect = (distance < squareProtect);
+                    bool visible = (distance < squareVisible) - protect;
 
                     close_dx += (boids[i].x - boids[j].x) * protect;
                     close_dy += (boids[i].y - boids[j].y) * protect;
@@ -187,7 +189,7 @@ int main(int argc, char **argv) {
                     boids[i].vy = 0;
                 }
             }
-        }//End Parallel
+        } //End Parallel
         auto end_frame = std::chrono::high_resolution_clock::now();
         auto frame = std::chrono::duration_cast<std::chrono::duration<double> >(end_frame - start_frame).count();
         values.push_back(frame);
@@ -224,7 +226,7 @@ void printBoid(const Boid boid, sf::Shape &shape, sf::RenderWindow &window) {
 }
 
 #pragma omp declare simd
-inline float squareDistance(const Boid* a, int i, int j) {
+inline float squareDistance(const Boid *a, int i, int j) {
     float dx = a[i].x - a[j].x;
     float dy = a[i].y - a[j].y;
     return dx * dx + dy * dy;

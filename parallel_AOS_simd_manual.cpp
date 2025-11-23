@@ -9,6 +9,12 @@
 #include <experimental/simd>
 #include "helpers.cpp"
 
+namespace stdx = std::experimental;
+
+using floatv  = stdx::native_simd<float>;
+using doublev = stdx::rebind_simd_t<double, floatv>;
+using intv    = stdx::rebind_simd_t<int, floatv>;
+
 struct Boid {
     float x = 0;
     float y = 0;
@@ -19,7 +25,7 @@ struct Boid {
 
 void printBoid(Boid boid, sf::Shape &shape, sf::RenderWindow &window);
 
-inline float squareDistance(const Boid* a, int i, int j);
+inline float squareDistance(const Boid *a, int i, int j);
 
 int main(int argc, char **argv) {
 #ifdef _OPENMP
@@ -51,8 +57,8 @@ int main(int argc, char **argv) {
     const unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::default_random_engine generator(seed);
 
-    Boid* boids = new Boid[N];
-    Boid* nextBoids = new Boid[N];
+    Boid *boids = new Boid[N];
+    Boid *nextBoids = new Boid[N];
     /*
      * Considering that boids number is constant, is better for performance to initialize all circle at once and only
      * update their positions.
@@ -106,15 +112,40 @@ int main(int argc, char **argv) {
                 float posX = 0;
                 float posY = 0;
 
-                int rest = N % 4;
-                for (int j = 0; j < N; j+= 4) {
-                    namespace stdx = std::experimental;
+                floatv current_x = boids[i].x;
+                floatv current_y = boids[i].y;
+                floatv protectDist = PROTECT * PROTECT;
+                floatv visibleDist = VISIBLE * VISIBLE;
+                int j = 0;
+                for (; j < N - 4; j += 4) {
+                    floatv x_positions([boids, j](int i){return boids[j + i].x;});
+                    floatv y_positions([boids, j](int i){return boids[j + i].y;});
+                    floatv x_vel([boids, j](int i){return boids[j + i].vx;});
+                    floatv y_vel([boids, j](int i){return boids[j + i].vy;});
 
-                    using floatv  = stdx::native_simd<float>;
+                    floatv distanceX = (current_x - x_positions);
+                    floatv distanceY = (current_y - y_positions);
 
+                    floatv distance = stdx::pow(distanceX, 2) + stdx::pow(distanceY, 2);
+                    floatv protect = 0;
+                    where(distance < protectDist, protect) = 1;
+                    floatv visible = 0;
+                    where(distance < visibleDist, visible) = 1;
+                    visible = visible - protect;
+
+                    close_dx += stdx::reduce(distanceX * protect);
+                    close_dy += stdx::reduce(distanceY * protect);
+
+                    velX += stdx::reduce(x_vel * visible);
+                    velY += stdx::reduce(y_vel * visible);
+                    posX += stdx::reduce(x_positions * visible);
+                    posY += stdx::reduce(x_positions * visible);
+                    neighbours += stdx::reduce(visible);
+                }
+                for (; j < N; j++) {
                     const float distance = squareDistance(boids, i, j);
-                    bool protect = (distance < PROTECT * PROTECT);
-                    bool visible = (distance < VISIBLE * VISIBLE) - protect;
+                    bool protect = (distance < protectDist[0]);
+                    bool visible = (distance < visibleDist[0]) - protect;
 
                     close_dx += (boids[i].x - boids[j].x) * protect;
                     close_dy += (boids[i].y - boids[j].y) * protect;
@@ -192,7 +223,7 @@ int main(int argc, char **argv) {
                     boids[i].vy = 0;
                 }
             }
-        }//End Parallel
+        } //End Parallel
         auto end_frame = std::chrono::high_resolution_clock::now();
         auto frame = std::chrono::duration_cast<std::chrono::duration<double> >(end_frame - start_frame).count();
         values.push_back(frame);
@@ -229,7 +260,7 @@ void printBoid(const Boid boid, sf::Shape &shape, sf::RenderWindow &window) {
 }
 
 #pragma omp declare simd
-inline float squareDistance(const Boid* a, int i, int j) {
+inline float squareDistance(const Boid *a, int i, int j) {
     float dx = a[i].x - a[j].x;
     float dy = a[i].y - a[j].y;
     return dx * dx + dy * dy;

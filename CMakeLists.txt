@@ -32,6 +32,8 @@ elseif (CMAKE_BUILD_TYPE STREQUAL "DebugThreads")
 elseif (CMAKE_BUILD_TYPE STREQUAL "Release")
     add_compile_options("-O3")
     add_compile_options("-mfma")
+    add_compile_options("-march=native")
+    add_compile_options("-ftree-vectorize")
 endif ()
 
 add_executable(sequential sequential.cpp)

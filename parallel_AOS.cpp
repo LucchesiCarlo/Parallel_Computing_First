@@ -18,7 +18,7 @@ struct Boid {
 
 void printBoid(Boid boid, sf::Shape &shape, sf::RenderWindow &window);
 
-inline float squareDistance(const Boid* a, const Boid* b, int i, int j);
+inline float squareDistance(const Boid *a, const Boid *b, int i, int j);
 
 int main(int argc, char **argv) {
 #ifdef CIAO
@@ -53,8 +53,8 @@ int main(int argc, char **argv) {
     const unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::default_random_engine generator(seed);
 
-    Boid* boids = new Boid[N];
-    Boid* nextBoids = new Boid[N];
+    Boid *boids = new Boid[N];
+    Boid *nextBoids = new Boid[N];
     /*
      * Considering that boids number is constant, is better for performance to initialize all circle at once and only
      * update their positions.
@@ -219,6 +219,6 @@ void printBoid(const Boid boid, sf::Shape &shape, sf::RenderWindow &window) {
     window.draw(shape);
 }
 
-inline float squareDistance(const Boid* a, const Boid* b, int i, int j) {
+inline float squareDistance(const Boid *a, const Boid *b, int i, int j) {
     return static_cast<float>(pow((a[i].x - b[j].x), 2) + pow(a[i].y - b[j].y, 2));
 }
