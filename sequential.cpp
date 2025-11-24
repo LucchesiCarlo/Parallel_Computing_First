@@ -15,7 +15,7 @@ struct Boid {
     float vy = 0;
 };
 
-void printBoid(Boid boid, sf::Shape &shape, sf::RenderWindow &window);
+void printBoidAOS(Boid boid, sf::Shape &shape, sf::RenderWindow &window);
 
 inline float squareDistance(Boid a, Boid b);
 
@@ -80,7 +80,7 @@ int main(int argc, char **argv) {
 
         window.clear(sf::Color::Black);
         for (int i = 0; i < N; i++) {
-            printBoid(boids[i], shapes[i], window);
+            printBoidAOS(boids[i], shapes[i], window);
         }
         window.display();
 
@@ -192,7 +192,7 @@ int main(int argc, char **argv) {
     }
 }
 
-void printBoid(const Boid boid, sf::Shape &shape, sf::RenderWindow &window) {
+void printBoidAOS(const Boid boid, sf::Shape &shape, sf::RenderWindow &window) {
     shape.setPosition({boid.x, boid.y});
     window.draw(shape);
 }

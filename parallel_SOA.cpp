@@ -87,7 +87,7 @@ int main(int argc, char **argv) {
                 for (int j = 0; j < N; j++) {
                     if (i == j)
                         continue;
-                    const float distance = squareDistanceSOA(boids, i, j);
+                    const float distance = squareDistanceSOA_no_simd(boids, i, j);
                     if (distance < PROTECT * PROTECT) {
                         close_dx += boids.x[i] - boids.x[j];
                         close_dy += boids.y[i] - boids.y[j];

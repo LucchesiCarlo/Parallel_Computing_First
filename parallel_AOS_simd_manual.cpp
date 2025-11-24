@@ -7,19 +7,8 @@
 #include <SFML/Graphics.hpp>
 #include <omp.h>
 #include <immintrin.h>
-#include "helpersSOA.cpp"
+#include "helpersAOS.cpp"
 
-struct Boid {
-    float x = 0;
-    float y = 0;
-
-    float vx = 0;
-    float vy = 0;
-};
-
-void printBoid(Boid boid, sf::Shape &shape, sf::RenderWindow &window);
-
-inline float squareDistance(const Boid *a, int i, int j);
 
 inline void horizontal_add_avx(__m256 a, __m256 b, float &res_a, float &res_b);
 
@@ -67,19 +56,7 @@ int main(int argc, char **argv) {
     std::unique_ptr<sf::CircleShape[]> shapes(new sf::CircleShape[N]);
     std::list<double> values;
 
-    for (int i = 0; i < N; i++) {
-        boids[i].x = static_cast<float>(generator() % WIDTH);
-        boids[i].y = static_cast<float>(generator() % HEIGHT);
-        boids[i].vx = static_cast<float>(generator() % (static_cast<int>(MAX_SPEED - MIN_SPEED))) + MIN_SPEED;
-        boids[i].vy = static_cast<float>(generator() % (static_cast<int>(MAX_SPEED - MIN_SPEED))) + MIN_SPEED;
-
-        sf::CircleShape circle(1);
-        circle.setFillColor(sf::Color::Black);
-        circle.setOutlineColor(sf::Color::White);
-        circle.setOutlineThickness(1.f);
-        circle.setOrigin(circle.getGeometricCenter());
-        shapes[i] = circle;
-    }
+    initializeBoidsAOS(boids, shapes.get(), N, WIDTH, HEIGHT, MAX_SPEED, MIN_SPEED);
 
     sf::RenderWindow window(sf::VideoMode({WIDTH, HEIGHT}), "Boids");
     window.setFramerateLimit(FPS);
@@ -93,7 +70,7 @@ int main(int argc, char **argv) {
 
         window.clear(sf::Color::Black);
         for (int i = 0; i < N; i++) {
-            printBoid(boids[i], shapes[i], window);
+            printBoidAOS(boids[i], shapes[i], window);
         }
         window.display();
 
@@ -183,7 +160,7 @@ int main(int argc, char **argv) {
                 neighbours = sum;
 
                 for (; j < N; j++) {
-                    const float distance = squareDistance(boids, i, j);
+                    const float distance = squareDistanceAOS(boids, i, j);
                     bool protect = (distance < protectDist[0]);
                     bool visible = (distance < visibleDist[0]) - protect;
 
@@ -292,18 +269,6 @@ int main(int argc, char **argv) {
 
     delete[] boids;
     delete[] nextBoids;
-}
-
-void printBoid(const Boid boid, sf::Shape &shape, sf::RenderWindow &window) {
-    shape.setPosition({boid.x, boid.y});
-    window.draw(shape);
-}
-
-#pragma omp declare simd
-inline float squareDistance(const Boid *a, int i, int j) {
-    float dx = a[i].x - a[j].x;
-    float dy = a[i].y - a[j].y;
-    return dx * dx + dy * dy;
 }
 
 inline void horizontal_add_avx(__m256 a, __m256 b, float &res_a, float &res_b) {
