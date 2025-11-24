@@ -6,14 +6,8 @@
 #include <random>
 #include <SFML/Graphics.hpp>
 #include <omp.h>
-#include <experimental/simd>
+#include <immintrin.h>
 #include "helpers.cpp"
-
-namespace stdx = std::experimental;
-
-using floatv = stdx::native_simd<float>;
-using doublev = stdx::rebind_simd_t<double, floatv>;
-using intv = stdx::rebind_simd_t<int, floatv>;
 
 struct Boid {
     float x = 0;
@@ -27,7 +21,13 @@ void printBoid(Boid boid, sf::Shape &shape, sf::RenderWindow &window);
 
 inline float squareDistance(const Boid *a, int i, int j);
 
+inline void horizontal_add_avx(__m256 a, __m256 b, float& res_a, float& res_b);
+inline void horizontal_add_avx(__m256i a, __m256i b, int& res_a, int& res_b);
+
 int main(int argc, char **argv) {
+#ifdef __AVX2__
+    std::cout << "AVX2 supported!\n";
+#endif
 #ifdef _OPENMP
     std::cout << "OPEN_MP available" << "\n";
 #endif
@@ -105,43 +105,69 @@ int main(int argc, char **argv) {
             for (int i = 0; i < N; i++) {
                 float close_dx = 0;
                 float close_dy = 0;
+                __m256 _close_dx = _mm256_set1_ps(0);
+                __m256 _close_dy = _mm256_set1_ps(0);
 
                 int neighbours = 0;
+                __m256i _neighbours = _mm256_set1_epi32(0);
+                const __m256i _neighbourMask = _mm256_set1_epi32(1);
                 float velX = 0;
                 float velY = 0;
                 float posX = 0;
                 float posY = 0;
+                __m256 _velX = _mm256_set1_ps(0);
+                __m256 _velY = _mm256_set1_ps(0);
+                __m256 _posX = _mm256_set1_ps(0);
+                __m256 _posY = _mm256_set1_ps(0);
 
-                floatv current_x = boids[i].x;
-                floatv current_y = boids[i].y;
-                floatv protectDist = PROTECT * PROTECT;
-                floatv visibleDist = VISIBLE * VISIBLE;
+                __m256 current_x = _mm256_set1_ps(boids[i].x);
+                __m256 current_y = _mm256_set1_ps(boids[i].y);
+
+                float protectSquare = PROTECT * PROTECT;
+                float visibleSquare = VISIBLE * VISIBLE;
+                __m256 protectDist = _mm256_set1_ps(protectSquare);
+                __m256 visibleDist = _mm256_set1_ps(visibleSquare);
                 int j = 0;
-                for (; j < N - 4; j += 4) {
-                    floatv x_positions([boids, j](int i) { return boids[j + i].x; });
-                    floatv y_positions([boids, j](int i) { return boids[j + i].y; });
-                    floatv x_vel([boids, j](int i) { return boids[j + i].vx; });
-                    floatv y_vel([boids, j](int i) { return boids[j + i].vy; });
+                for (; j <= N - 8; j += 8) {
+                    __m256 x_positions = {boids[j].x, boids[j + 1].x, boids[j + 2].x, boids[j + 3].x, boids[j + 4].x, boids[j+ 5].x, boids[j + 6].x, boids[j + 7].x};
+                    __m256 y_positions = {boids[j].y, boids[j + 1].y, boids[j + 2].y, boids[j + 3].y, boids[j + 4].y, boids[j+ 5].y, boids[j + 6].y, boids[j + 7].y};
+                    __m256 x_vel = {boids[j].vx, boids[j + 1].vx, boids[j + 2].vx, boids[j + 3].vx, boids[j + 4].vx, boids[j+ 5].vx, boids[j + 6].vx, boids[j + 7].vx};
+                    __m256 y_vel = {boids[j].vy, boids[j + 1].vy, boids[j + 2].vy, boids[j + 3].vy, boids[j + 4].vy, boids[j+ 5].vy, boids[j + 6].vy, boids[j + 7].vy};
 
-                    floatv distanceX = (current_x - x_positions);
-                    floatv distanceY = (current_y - y_positions);
+                    __m256 distanceX = _mm256_sub_ps(current_x, x_positions);
+                    __m256 distanceY = _mm256_sub_ps(current_y, y_positions);
 
-                    floatv distance = stdx::pow(distanceX, 2) + stdx::pow(distanceY, 2);
-                    floatv protect = 0;
-                    where(distance < protectDist, protect) = 1;
-                    floatv visible = 0;
-                    where(distance < visibleDist, visible) = 1;
-                    visible = visible - protect;
+                    __m256 distance = _mm256_add_ps(distanceX * distanceX, distanceY * distanceY);
+                    auto protect = _mm256_cmp_ps(protectDist, distance, _CMP_GT_OQ);
+                    auto visible = _mm256_cmp_ps(visibleDist, distance, _CMP_GT_OQ);
 
-                    close_dx += stdx::reduce(distanceX * protect);
-                    close_dy += stdx::reduce(distanceY * protect);
+                    visible = _mm256_andnot_ps(protect, visible);
 
-                    velX += stdx::reduce(x_vel * visible);
-                    velY += stdx::reduce(y_vel * visible);
-                    posX += stdx::reduce(x_positions * visible);
-                    posY += stdx::reduce(x_positions * visible);
-                    neighbours += stdx::reduce(visible);
+                    _close_dx = _mm256_add_ps(_close_dx, _mm256_and_ps(distanceX, protect));
+                    _close_dy = _mm256_add_ps(_close_dy, _mm256_and_ps(distanceY, protect));
+
+                    _velX = _mm256_add_ps(_velX,  _mm256_and_ps(x_vel, visible));
+                    _velY = _mm256_add_ps(_velY,  _mm256_and_ps(y_vel, visible));
+                    _posX = _mm256_add_ps(_posX,  _mm256_and_ps(x_positions, visible));
+                    _posY = _mm256_add_ps(_posY, _mm256_and_ps(y_positions, visible));
+                    _neighbours = _mm256_add_epi32(_neighbours , _mm256_and_si256(_mm256_castps_si256(visible), _neighbourMask));
                 }
+
+                float sum_a, sum_b;
+                horizontal_add_avx(_close_dx, _close_dy, sum_a, sum_b);
+                close_dx = sum_a;
+                close_dy = sum_b;
+                horizontal_add_avx(_velX, _velY, sum_a, sum_b);
+                velX = sum_a;
+                velY = sum_b;
+                horizontal_add_avx(_posX, _posY, sum_a, sum_b);
+                posX = sum_a;
+                posY = sum_b;
+
+                int sum;
+                horizontal_add_avx(_neighbours, _neighbours, sum, sum);
+                neighbours = sum;
+
                 for (; j < N; j++) {
                     const float distance = squareDistance(boids, i, j);
                     bool protect = (distance < protectDist[0]);
@@ -264,4 +290,29 @@ inline float squareDistance(const Boid *a, int i, int j) {
     float dx = a[i].x - a[j].x;
     float dy = a[i].y - a[j].y;
     return dx * dx + dy * dy;
+}
+
+inline void horizontal_add_avx(__m256 a, __m256 b, float& res_a, float& res_b) {
+    auto partial = _mm256_hadd_ps(a, b);
+    __m128 lower = _mm256_extractf128_ps(partial, 0);
+    __m128 upper = _mm256_extractf128_ps(partial, 1);
+    upper = upper + lower;
+    __m128 result = _mm_hadd_ps(upper, upper);
+
+    auto *mem = new float[4];
+    _mm_storeu_ps(mem, result);
+    res_a = mem[0];
+    res_b = mem[1];
+    delete[] mem;
+}
+
+inline void horizontal_add_avx(__m256i a, __m256i b, int& res_a, int& res_b) {
+    auto partial = _mm256_hadd_epi32(a, b);
+    __m128i lower = _mm256_extracti128_si256(partial, 0);
+    __m128i upper = _mm256_extracti128_si256(partial, 1);
+    upper = upper + lower;
+    __m128i result = _mm_hadd_epi32(upper, upper);
+
+    res_a = _mm_extract_epi32(result, 0);
+    res_b = _mm_extract_epi32(result, 1);
 }

@@ -8,6 +8,9 @@ else ()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xpreprocessor -fopenmp -lomp")
 endif ()
 
+add_compile_options("-mavx")
+add_compile_options("-mavx2")
+
 #Code copied from the SFML site for CMake configurations
 include(FetchContent)
 FetchContent_Declare(SFML
