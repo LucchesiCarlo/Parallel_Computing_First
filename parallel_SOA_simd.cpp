@@ -8,14 +8,6 @@
 #include <omp.h>
 #include "helpers.cpp"
 
-struct Boids {
-    float *x;
-    float *y;
-
-    float *vx;
-    float *vy;
-};
-
 void printBoid(Boids boid, int i, sf::Shape &shape, sf::RenderWindow &window);
 
 inline float squareDistance(const Boids &a, int i, int j);
@@ -53,15 +45,8 @@ int main(int argc, char **argv) {
     Boids boids{};
     Boids nextBoids{};
 
-    boids.x = new float[N];
-    boids.y = new float[N];
-    boids.vx = new float[N];
-    boids.vy = new float[N];
-
-    nextBoids.x = new float[N];
-    nextBoids.y = new float[N];
-    nextBoids.vx = new float[N];
-    nextBoids.vy = new float[N];
+    initialize_boids_soa(boids, N);
+    initialize_boids_soa(nextBoids, N);
     /*
      * Considering that boids number is constant, is better for performance to initialize all circle at once and only
      * update their positions.

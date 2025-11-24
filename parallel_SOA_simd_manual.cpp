@@ -8,19 +8,6 @@
 #include <omp.h>
 #include <immintrin.h>
 #include "helpers.cpp"
-
-struct Boid {
-    float x = 0;
-    float y = 0;
-
-    float vx = 0;
-    float vy = 0;
-};
-
-void printBoid(Boid boid, sf::Shape &shape, sf::RenderWindow &window);
-
-inline float squareDistance(const Boid *a, int i, int j);
-
 inline void horizontal_add_avx(__m256 a, __m256 b, float &res_a, float &res_b);
 
 inline void horizontal_add_avx(__m256i a, __m256i b, int &res_a, int &res_b);
@@ -58,8 +45,11 @@ int main(int argc, char **argv) {
     const unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::default_random_engine generator(seed);
 
-    Boid *boids = new Boid[N];
-    Boid *nextBoids = new Boid[N];
+    Boids boids{};
+    Boids nextBoids{};
+
+    initialize_boids_soa(boids, N);
+    initialize_boids_soa(nextBoids, N);
     /*
      * Considering that boids number is constant, is better for performance to initialize all circle at once and only
      * update their positions.
@@ -68,10 +58,10 @@ int main(int argc, char **argv) {
     std::list<double> values;
 
     for (int i = 0; i < N; i++) {
-        boids[i].x = static_cast<float>(generator() % WIDTH);
-        boids[i].y = static_cast<float>(generator() % HEIGHT);
-        boids[i].vx = static_cast<float>(generator() % (static_cast<int>(MAX_SPEED - MIN_SPEED))) + MIN_SPEED;
-        boids[i].vy = static_cast<float>(generator() % (static_cast<int>(MAX_SPEED - MIN_SPEED))) + MIN_SPEED;
+        boids.x[i] = static_cast<float>(generator() % WIDTH);
+        boids.y[i] = static_cast<float>(generator() % HEIGHT);
+        boids.vx[i] = static_cast<float>(generator() % (static_cast<int>(MAX_SPEED - MIN_SPEED))) + MIN_SPEED;
+        boids.vy[i] = static_cast<float>(generator() % (static_cast<int>(MAX_SPEED - MIN_SPEED))) + MIN_SPEED;
 
         sf::CircleShape circle(1);
         circle.setFillColor(sf::Color::Black);
@@ -93,7 +83,7 @@ int main(int argc, char **argv) {
 
         window.clear(sf::Color::Black);
         for (int i = 0; i < N; i++) {
-            printBoid(boids[i], shapes[i], window);
+            printBoidSOA(boids, i, shapes[i], window);
         }
         window.display();
 
@@ -121,8 +111,8 @@ int main(int argc, char **argv) {
                 __m256 _posX = _mm256_set1_ps(0);
                 __m256 _posY = _mm256_set1_ps(0);
 
-                __m256 current_x = _mm256_set1_ps(boids[i].x);
-                __m256 current_y = _mm256_set1_ps(boids[i].y);
+                __m256 current_x = _mm256_set1_ps(boids.x[i]);
+                __m256 current_y = _mm256_set1_ps(boids.y[i]);
 
                 float protectSquare = PROTECT * PROTECT;
                 float visibleSquare = VISIBLE * VISIBLE;
@@ -131,20 +121,20 @@ int main(int argc, char **argv) {
                 int j = 0;
                 for (; j <= N - 8; j += 8) {
                     __m256 x_positions = {
-                        boids[j].x, boids[j + 1].x, boids[j + 2].x, boids[j + 3].x, boids[j + 4].x, boids[j + 5].x,
-                        boids[j + 6].x, boids[j + 7].x
+                        boids.x[j], boids.x[j + 1], boids.x[j + 2], boids.x[j + 3], boids.x[j + 4], boids.x[j + 5],
+                        boids.x[j + 6], boids.x[j + 7]
                     };
                     __m256 y_positions = {
-                        boids[j].y, boids[j + 1].y, boids[j + 2].y, boids[j + 3].y, boids[j + 4].y, boids[j + 5].y,
-                        boids[j + 6].y, boids[j + 7].y
+                        boids.y[j], boids.y[j + 1], boids.y[j + 2], boids.y[j + 3], boids.y[j + 4], boids.y[j + 5],
+                        boids.y[j + 6], boids.y[j + 7]
                     };
                     __m256 x_vel = {
-                        boids[j].vx, boids[j + 1].vx, boids[j + 2].vx, boids[j + 3].vx, boids[j + 4].vx,
-                        boids[j + 5].vx, boids[j + 6].vx, boids[j + 7].vx
+                        boids.vx[j], boids.vx[j + 1], boids.vx[j + 2], boids.vx[j + 3], boids.vx[j + 4],
+                        boids.vx[j + 5], boids.vx[j + 6], boids.vx[j + 7]
                     };
                     __m256 y_vel = {
-                        boids[j].vy, boids[j + 1].vy, boids[j + 2].vy, boids[j + 3].vy, boids[j + 4].vy,
-                        boids[j + 5].vy, boids[j + 6].vy, boids[j + 7].vy
+                        boids.vy[j], boids.vy[j + 1], boids.vy[j + 2], boids.vy[j + 3], boids.vy[j + 4],
+                        boids.vy[j + 5], boids.vy[j + 6], boids.vy[j + 7]
                     };
 
                     __m256 distanceX = _mm256_sub_ps(current_x, x_positions);
@@ -183,23 +173,23 @@ int main(int argc, char **argv) {
                 neighbours = sum;
 
                 for (; j < N; j++) {
-                    const float distance = squareDistance(boids, i, j);
+                    const float distance = squareDistanceSOA(boids, i, j);
                     bool protect = (distance < protectDist[0]);
                     bool visible = (distance < visibleDist[0]) - protect;
 
-                    close_dx += (boids[i].x - boids[j].x) * protect;
-                    close_dy += (boids[i].y - boids[j].y) * protect;
+                    close_dx += (boids.x[i] - boids.x[j]) * protect;
+                    close_dy += (boids.y[i] - boids.y[j]) * protect;
 
-                    velX += boids[j].vx * visible;
-                    velY += boids[j].vy * visible;
-                    posX += boids[j].x * visible;
-                    posY += boids[j].y * visible;
+                    velX += boids.vx[j] * visible;
+                    velY += boids.vy[j] * visible;
+                    posX += boids.x[j] * visible;
+                    posY += boids.y[j] * visible;
                     neighbours += visible;
                 }
-                velX -= boids[i].vx;
-                velY -= boids[i].vy;
-                posX -= boids[i].x;
-                posY -= boids[i].y;
+                velX -= boids.vx[i];
+                velY -= boids.vy[i];
+                posX -= boids.x[i];
+                posY -= boids.y[i];
                 neighbours--;
 
                 if (neighbours > 0) {
@@ -208,36 +198,34 @@ int main(int argc, char **argv) {
                     posX = posX / static_cast<float>(neighbours);
                     posY = posY / static_cast<float>(neighbours);
                 }
-                nextBoids[i].x = boids[i].x;
-                nextBoids[i].y = boids[i].y;
+                nextBoids.x[i] = boids.x[i];
+                nextBoids.y[i] = boids.y[i];
 
-                nextBoids[i].vx = close_dx * AVOID + (velX - boids[i].vx) * MATCH + (posX - boids[i].x) * CENTER + boids
-                                  [i].
-                                  vx;
-                nextBoids[i].vy = close_dy * AVOID + (velY - boids[i].vy) * MATCH + (posY - boids[i].y) * CENTER + boids
-                                  [i].
-                                  vy;
+                nextBoids.vx[i] = close_dx * AVOID + (velX - boids.vx[i]) * MATCH + (posX - boids.x[i]) * CENTER + boids
+                                  .vx[i];
+                nextBoids.vy[i] = close_dy * AVOID + (velY - boids.vy[i]) * MATCH + (posY - boids.y[i]) * CENTER + boids
+                                  .vy[i];
 
-                if (nextBoids[i].x < MARGIN) {
-                    nextBoids[i].vx += TURN;
-                } else if (nextBoids[i].x > WIDTH - MARGIN) {
-                    nextBoids[i].vx -= TURN;
+                if (nextBoids.x[i] < MARGIN) {
+                    nextBoids.vx[i] += TURN;
+                } else if (nextBoids.x[i] > WIDTH - MARGIN) {
+                    nextBoids.vx[i] -= TURN;
                 }
-                if (nextBoids[i].y < MARGIN) {
-                    nextBoids[i].vy += TURN;
-                } else if (nextBoids[i].y > HEIGHT - MARGIN) {
-                    nextBoids[i].vy -= TURN;
+                if (nextBoids.y[i] < MARGIN) {
+                    nextBoids.vy[i] += TURN;
+                } else if (nextBoids.y[i] > HEIGHT - MARGIN) {
+                    nextBoids.vy[i] -= TURN;
                 }
 
-                const auto speed = static_cast<float>(sqrt(pow(boids[i].vx, 2) + pow(boids[i].vy, 2)));
+                const auto speed = static_cast<float>(sqrt(pow(boids.vx[i], 2) + pow(boids.vy[i], 2)));
                 if (speed < EPSILON) {
-                    nextBoids[i].vy = MIN_SPEED;
+                    nextBoids.vy[i] = MIN_SPEED;
                 } else if (speed < MIN_SPEED) {
-                    nextBoids[i].vx *= MIN_SPEED / speed;
-                    nextBoids[i].vy *= MIN_SPEED / speed;
+                    nextBoids.vx[i] *= MIN_SPEED / speed;
+                    nextBoids.vy[i] *= MIN_SPEED / speed;
                 } else if (speed > MAX_SPEED) {
-                    nextBoids[i].vx *= MAX_SPEED / speed;
-                    nextBoids[i].vy *= MAX_SPEED / speed;
+                    nextBoids.vx[i] *= MAX_SPEED / speed;
+                    nextBoids.vy[i] *= MAX_SPEED / speed;
                 }
             }
 #pragma omp single
@@ -245,22 +233,22 @@ int main(int argc, char **argv) {
 
 #pragma omp for nowait
             for (int i = 0; i < N; i++) {
-                boids[i].x += boids[i].vx;
-                boids[i].y += boids[i].vy;
+                boids.x[i] += boids.vx[i];
+                boids.y[i] += boids.vy[i];
 
-                if (boids[i].x < 0) {
-                    boids[i].x = 0;
-                    boids[i].vx = 0;
-                } else if (boids[i].x > WIDTH) {
-                    boids[i].x = WIDTH;
-                    boids[i].vx = 0;
+                if (boids.x[i] < 0) {
+                    boids.x[i] = 0;
+                    boids.vx[i] = 0;
+                } else if (boids.x[i] > WIDTH) {
+                    boids.x[i] = WIDTH;
+                    boids.vx[i] = 0;
                 }
-                if (boids[i].y < 0) {
-                    boids[i].y = 0;
-                    boids[i].vy = 0;
-                } else if (boids[i].y > HEIGHT) {
-                    boids[i].y = HEIGHT;
-                    boids[i].vy = 0;
+                if (boids.y[i] < 0) {
+                    boids.y[i] = 0;
+                    boids.vy[i] = 0;
+                } else if (boids.y[i] > HEIGHT) {
+                    boids.y[i] = HEIGHT;
+                    boids.vy[i] = 0;
                 }
             }
         } //End Parallel
@@ -290,20 +278,8 @@ int main(int argc, char **argv) {
         fclose(output);
     }
 
-    delete[] boids;
-    delete[] nextBoids;
-}
-
-void printBoid(const Boid boid, sf::Shape &shape, sf::RenderWindow &window) {
-    shape.setPosition({boid.x, boid.y});
-    window.draw(shape);
-}
-
-#pragma omp declare simd
-inline float squareDistance(const Boid *a, int i, int j) {
-    float dx = a[i].x - a[j].x;
-    float dy = a[i].y - a[j].y;
-    return dx * dx + dy * dy;
+    delete_boids_soa(boids);
+    delete_boids_soa(nextBoids);
 }
 
 inline void horizontal_add_avx(__m256 a, __m256 b, float &res_a, float &res_b) {

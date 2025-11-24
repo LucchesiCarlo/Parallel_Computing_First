@@ -62,3 +62,7 @@ target_link_libraries(parallel_SOA_simd PRIVATE SFML::Graphics)
 add_executable(parallel_AOS_simd_manual parallel_AOS_simd_manual.cpp)
 target_compile_features(parallel_AOS_simd_manual PRIVATE cxx_std_17)
 target_link_libraries(parallel_AOS_simd_manual PRIVATE SFML::Graphics)
+
+add_executable(parallel_SOA_simd_manual parallel_SOA_simd_manual.cpp)
+target_compile_features(parallel_SOA_simd_manual PRIVATE cxx_std_17)
+target_link_libraries(parallel_SOA_simd_manual PRIVATE SFML::Graphics)

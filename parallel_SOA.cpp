@@ -8,14 +8,6 @@
 #include <omp.h>
 #include "helpers.cpp"
 
-struct Boids {
-    float *x;
-    float *y;
-
-    float *vx;
-    float *vy;
-};
-
 void printBoid(Boids boid, int i, sf::Shape &shape, sf::RenderWindow &window);
 
 inline float squareDistance(const Boids &a, int i, int j);
@@ -53,15 +45,8 @@ int main(int argc, char **argv) {
     Boids boids{};
     Boids nextBoids{};
 
-    boids.x = new float[N];
-    boids.y = new float[N];
-    boids.vx = new float[N];
-    boids.vy = new float[N];
-
-    nextBoids.x = new float[N];
-    nextBoids.y = new float[N];
-    nextBoids.vx = new float[N];
-    nextBoids.vy = new float[N];
+    initialize_boids_soa(boids, N);
+    initialize_boids_soa(nextBoids, N);
     /*
      * Considering that boids number is constant, is better for performance to initialize all circle at once and only
      * update their positions.
@@ -117,7 +102,7 @@ int main(int argc, char **argv) {
                 for (int j = 0; j < N; j++) {
                     if (i == j)
                         continue;
-                    const float distance = squareDistance(boids, i, j);
+                    const float distance = squareDistanceSOA(boids, i, j);
                     if (distance < PROTECT * PROTECT) {
                         close_dx += boids.x[i] - boids.x[j];
                         close_dy += boids.y[i] - boids.y[j];
@@ -226,11 +211,3 @@ int main(int argc, char **argv) {
     delete[] nextBoids.vy;
 }
 
-void printBoid(Boids boid, const int i, sf::Shape &shape, sf::RenderWindow &window) {
-    shape.setPosition({boid.x[i], boid.y[i]});
-    window.draw(shape);
-}
-
-inline float squareDistance(const Boids &a, const int i, const int j) {
-    return static_cast<float>(pow((a.x[i] - a.x[j]), 2) + pow(a.y[i] - a.y[j], 2));
-}
