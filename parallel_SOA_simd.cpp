@@ -6,7 +6,7 @@
 #include <random>
 #include <SFML/Graphics.hpp>
 #include <omp.h>
-#include "helpers.cpp"
+#include "helpersSOA.cpp"
 
 void printBoid(Boids boid, int i, sf::Shape &shape, sf::RenderWindow &window);
 
@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
     double seconds;
     int threads;
 
-    get_parameters(argc, argv, n, seconds, threads);
+    getParameters(argc, argv, n, seconds, threads);
     const auto N = n;
     const double SECONDS = seconds;
     const int THREADS = threads;
@@ -45,8 +45,8 @@ int main(int argc, char **argv) {
     Boids boids{};
     Boids nextBoids{};
 
-    initialize_boids_soa(boids, N);
-    initialize_boids_soa(nextBoids, N);
+    createBoidsSOA(boids, N);
+    createBoidsSOA(nextBoids, N);
     /*
      * Considering that boids number is constant, is better for performance to initialize all circle at once and only
      * update their positions.
@@ -54,19 +54,7 @@ int main(int argc, char **argv) {
     std::unique_ptr<sf::CircleShape[]> shapes(new sf::CircleShape[N]);
     std::list<double> values;
 
-    for (int i = 0; i < N; i++) {
-        boids.x[i] = static_cast<float>(generator() % WIDTH);
-        boids.y[i] = static_cast<float>(generator() % HEIGHT);
-        boids.vx[i] = static_cast<float>(generator() % (static_cast<int>(MAX_SPEED - MIN_SPEED))) + MIN_SPEED;
-        boids.vy[i] = static_cast<float>(generator() % (static_cast<int>(MAX_SPEED - MIN_SPEED))) + MIN_SPEED;
-
-        sf::CircleShape circle(1);
-        circle.setFillColor(sf::Color::Black);
-        circle.setOutlineColor(sf::Color::White);
-        circle.setOutlineThickness(1.f);
-        circle.setOrigin(circle.getGeometricCenter());
-        shapes[i] = circle;
-    }
+    initializeBoidsSoa(boids, shapes.get(), N, WIDTH, HEIGHT, MAX_SPEED, MIN_SPEED);
 
     sf::RenderWindow window(sf::VideoMode({WIDTH, HEIGHT}), "Boids");
     window.setFramerateLimit(FPS);

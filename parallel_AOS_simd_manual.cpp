@@ -7,7 +7,7 @@
 #include <SFML/Graphics.hpp>
 #include <omp.h>
 #include <immintrin.h>
-#include "helpers.cpp"
+#include "helpersSOA.cpp"
 
 struct Boid {
     float x = 0;
@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
     double seconds;
     int threads;
 
-    get_parameters(argc, argv, n, seconds, threads);
+    getParameters(argc, argv, n, seconds, threads);
     const auto N = n;
     const double SECONDS = seconds;
     const int THREADS = threads;
