@@ -9,6 +9,9 @@
 #include "helpersAOS.cpp"
 
 int main(int argc, char **argv) {
+#ifdef PADDING
+    std::cout << "Padding Enabled" << "\n";
+#endif
 #ifdef _OPENMP
     std::cout << "OPEN_MP available" << "\n";
 #endif

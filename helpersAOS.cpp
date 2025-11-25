@@ -5,7 +5,18 @@
 #include <string>
 #include <random>
 #include <SFML/Graphics.hpp>
+#ifdef PADDING
+#define CACHE_LINE_SIZE 64
+struct alignas(CACHE_LINE_SIZE) Boid {
+    float x = 0;
+    float y = 0;
 
+    float vx = 0;
+    float vy = 0;
+
+    char padding[CACHE_LINE_SIZE - sizeof(float) * 4];
+};
+#else
 struct Boid {
     float x = 0;
     float y = 0;
@@ -13,7 +24,7 @@ struct Boid {
     float vx = 0;
     float vy = 0;
 };
-
+#endif
 void getParameters(const int argc, char **argv, int &n, double &seconds, int &threads) {
     constexpr int N = 1000;
     constexpr double SECONDS = 10.;

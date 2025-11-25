@@ -13,11 +13,14 @@ inline void horizontal_add_avx(__m256 a, __m256 b, float &res_a, float &res_b);
 
 inline void horizontal_add_avx(__m256i a, __m256i b, int &res_a, int &res_b);
 
-void aligned_boids_create(Boids& boids, int N);
+void aligned_boids_create(Boids &boids, int N);
 
-void aligned_boids_delete(Boids& boids);
+void aligned_boids_delete(Boids &boids);
 
 int main(int argc, char **argv) {
+#ifdef PADDING
+    std::cout << "Padding Enabled" << "\n";
+#endif
 #ifdef __AVX2__
     std::cout << "AVX2 supported!\n";
 #endif
@@ -288,14 +291,14 @@ inline void horizontal_add_avx(__m256i a, __m256i b, int &res_a, int &res_b) {
     res_b = _mm_extract_epi32(result, 1);
 }
 
-void aligned_boids_create(Boids& boids, const int N) {
-    boids.x = (float*) _mm_malloc(N * sizeof(float), 32);
-    boids.y = (float*) _mm_malloc(N * sizeof(float), 32);
-    boids.vx = (float*) _mm_malloc(N * sizeof(float), 32);
-    boids.vy = (float*) _mm_malloc(N * sizeof(float), 32);
+void aligned_boids_create(Boids &boids, const int N) {
+    boids.x = (float *) _mm_malloc(N * sizeof(float), 32);
+    boids.y = (float *) _mm_malloc(N * sizeof(float), 32);
+    boids.vx = (float *) _mm_malloc(N * sizeof(float), 32);
+    boids.vy = (float *) _mm_malloc(N * sizeof(float), 32);
 }
 
-void aligned_boids_delete(Boids& boids) {
+void aligned_boids_delete(Boids &boids) {
     _mm_free(boids.x);
     _mm_free(boids.y);
     _mm_free(boids.vx);
