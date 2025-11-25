@@ -13,6 +13,10 @@ inline void horizontal_add_avx(__m256 a, __m256 b, float &res_a, float &res_b);
 
 inline void horizontal_add_avx(__m256i a, __m256i b, int &res_a, int &res_b);
 
+void aligned_boids_create(Boids& boids, int N);
+
+void aligned_boids_delete(Boids& boids);
+
 int main(int argc, char **argv) {
 #ifdef __AVX2__
     std::cout << "AVX2 supported!\n";
@@ -49,8 +53,8 @@ int main(int argc, char **argv) {
     Boids boids{};
     Boids nextBoids{};
 
-    createBoidsSOA(boids, N);
-    createBoidsSOA(nextBoids, N);
+    aligned_boids_create(boids, N);
+    aligned_boids_create(nextBoids, N);
     /*
      * Considering that boids number is constant, is better for performance to initialize all circle at once and only
      * update their positions.
@@ -109,22 +113,10 @@ int main(int argc, char **argv) {
                 __m256 visibleDist = _mm256_set1_ps(visibleSquare);
                 int j = 0;
                 for (; j <= N - 8; j += 8) {
-                    __m256 x_positions = {
-                        boids.x[j], boids.x[j + 1], boids.x[j + 2], boids.x[j + 3], boids.x[j + 4], boids.x[j + 5],
-                        boids.x[j + 6], boids.x[j + 7]
-                    };
-                    __m256 y_positions = {
-                        boids.y[j], boids.y[j + 1], boids.y[j + 2], boids.y[j + 3], boids.y[j + 4], boids.y[j + 5],
-                        boids.y[j + 6], boids.y[j + 7]
-                    };
-                    __m256 x_vel = {
-                        boids.vx[j], boids.vx[j + 1], boids.vx[j + 2], boids.vx[j + 3], boids.vx[j + 4],
-                        boids.vx[j + 5], boids.vx[j + 6], boids.vx[j + 7]
-                    };
-                    __m256 y_vel = {
-                        boids.vy[j], boids.vy[j + 1], boids.vy[j + 2], boids.vy[j + 3], boids.vy[j + 4],
-                        boids.vy[j + 5], boids.vy[j + 6], boids.vy[j + 7]
-                    };
+                    __m256 x_positions = _mm256_load_ps(&(boids.x[j]));
+                    __m256 y_positions = _mm256_load_ps(&(boids.y[j]));
+                    __m256 x_vel = _mm256_load_ps(&(boids.vx[j]));
+                    __m256 y_vel = _mm256_load_ps(&(boids.vy[j]));
 
                     __m256 distanceX = _mm256_sub_ps(current_x, x_positions);
                     __m256 distanceY = _mm256_sub_ps(current_y, y_positions);
@@ -267,8 +259,8 @@ int main(int argc, char **argv) {
         fclose(output);
     }
 
-    deleteBoidsSoa(boids);
-    deleteBoidsSoa(nextBoids);
+    aligned_boids_delete(boids);
+    aligned_boids_delete(nextBoids);
 }
 
 inline void horizontal_add_avx(__m256 a, __m256 b, float &res_a, float &res_b) {
@@ -294,4 +286,23 @@ inline void horizontal_add_avx(__m256i a, __m256i b, int &res_a, int &res_b) {
 
     res_a = _mm_extract_epi32(result, 0);
     res_b = _mm_extract_epi32(result, 1);
+}
+
+void aligned_boids_create(Boids& boids, const int N) {
+    boids.x = (float*) _mm_malloc(N * sizeof(float), 32);
+    boids.y = (float*) _mm_malloc(N * sizeof(float), 32);
+    boids.vx = (float*) _mm_malloc(N * sizeof(float), 32);
+    boids.vy = (float*) _mm_malloc(N * sizeof(float), 32);
+}
+
+void aligned_boids_delete(Boids& boids) {
+    _mm_free(boids.x);
+    _mm_free(boids.y);
+    _mm_free(boids.vx);
+    _mm_free(boids.vy);
+
+    boids.x = nullptr;
+    boids.y = nullptr;
+    boids.vx = nullptr;
+    boids.vy = nullptr;
 }
