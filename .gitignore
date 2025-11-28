@@ -1,0 +1,5 @@
+./cmake-release*/**
+results/**
+*.txt
+!CMakeList.txt
+
