@@ -1,6 +1,6 @@
 import os
 import subprocess
-
+import sys
 
 def execute_test(source_dir, target, num, sec, out_dir, threads=1, iterations=6):
     if not os.path.exists(out_dir):
@@ -14,6 +14,8 @@ def main():
     release_dir = "./cmake-build-release/"
     padding_dir = "./cmake-build-padding/"
     out_dir = "results/"
+    argv = sys.argv
+    padding = ("padding" in argv)
 
     sequential_name = "sequential"
     parallel_AOS = "parallel_AOS"
@@ -23,17 +25,27 @@ def main():
     parallel_SOA_simd = "parallel_SOA_simd"
     parallel_SOA_simd_manual = "parallel_SOA_simd_manual"
 
-    parallel_list = [parallel_AOS, parallel_AOS_simd, parallel_AOS_simd_manual, parallel_SOA, parallel_SOA_simd,
+    if padding:
+        parallel_list = [parallel_AOS, parallel_AOS_simd, parallel_AOS_simd_manual]
+    else:
+        parallel_list = [parallel_AOS, parallel_AOS_simd, parallel_AOS_simd_manual, parallel_SOA, parallel_SOA_simd,
                      parallel_SOA_simd_manual]
 
     base_num = 5000
     base_seconds = 10
     # Sequential Version Base Case
-    execute_test(release_dir, sequential_name, base_num, base_seconds, out_dir + sequential_name)
+    if not padding:
+        execute_test(release_dir, sequential_name, base_num, base_seconds, out_dir + sequential_name)
+    else:
+        execute_test(padding_dir, sequential_name, base_num, base_seconds, out_dir + sequential_name + "_padding")
+
     # Parallel Versions Base Case
     for t in range(1, 11):
         for name in parallel_list:
-            execute_test(release_dir, name, base_num, base_seconds, out_dir + name + f"_{t}", t)
+            if not padding:
+                execute_test(release_dir, name, base_num, base_seconds, out_dir + name + f"_{t}", t)
+            else:
+                execute_test(padding_dir, name, base_num, base_seconds, out_dir + name + f"_padding_{t}", t)
 
 
 main()

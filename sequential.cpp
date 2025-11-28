@@ -20,6 +20,9 @@ void printBoidAOS(Boid boid, sf::Shape &shape, sf::RenderWindow &window);
 inline float squareDistance(Boid a, Boid b);
 
 int main(int argc, char **argv) {
+#ifdef PADDING
+    std::cout << "Padding Enabled" << "\n";
+#endif
     constexpr unsigned WIDTH = 1600;
     constexpr unsigned HEIGHT = 800;
     constexpr float MARGIN = 75;
