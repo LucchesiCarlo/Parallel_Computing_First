@@ -2,4 +2,6 @@
 results/**
 *.txt
 !CMakeList.txt
+.ipynb_checkpoints/**
+.virtual_documents/**
 
