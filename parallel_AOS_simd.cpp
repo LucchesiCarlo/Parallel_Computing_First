@@ -6,7 +6,7 @@
 #include <random>
 #include <SFML/Graphics.hpp>
 #include <omp.h>
-#include "helpersAOS.cpp"
+#include "src/helpersAOS.h"
 
 int main(int argc, char **argv) {
 #ifdef PADDING

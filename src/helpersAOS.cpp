@@ -5,26 +5,8 @@
 #include <string>
 #include <random>
 #include <SFML/Graphics.hpp>
-#ifdef PADDING
-#define CACHE_LINE_SIZE 64
-struct alignas(CACHE_LINE_SIZE) Boid {
-    float x = 0;
-    float y = 0;
+#include "helpersAOS.h"
 
-    float vx = 0;
-    float vy = 0;
-
-    char padding[CACHE_LINE_SIZE - sizeof(float) * 4];
-};
-#else
-struct Boid {
-    float x = 0;
-    float y = 0;
-
-    float vx = 0;
-    float vy = 0;
-};
-#endif
 void getParameters(const int argc, char **argv, int &n, double &seconds, int &threads) {
     constexpr int N = 1000;
     constexpr double SECONDS = 10.;
@@ -63,7 +45,7 @@ void getParameters(const int argc, char **argv, int &n, double &seconds, int &th
 }
 
 void initializeBoidsAOS(Boid *boids, sf::CircleShape *shapes, const int N, const int WIDTH, const int HEIGHT,
-                        const float MAX_SPEED, const float MIN_SPEED, long seed = -1) {
+                        const float MAX_SPEED, const float MIN_SPEED, long seed) {
     if (seed == -1)
         seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::default_random_engine generator(seed);
@@ -89,15 +71,3 @@ void printBoidAOS(const Boid boid, sf::Shape &shape, sf::RenderWindow &window) {
     window.draw(shape);
 }
 
-#pragma omp declare simd
-inline float squareDistanceAOS(const Boid *a, const int i, const int j) {
-    const float dx = a[i].x - a[j].x;
-    const float dy = a[i].y - a[j].y;
-    return dx * dx + dy * dy;
-}
-
-inline float squareDistanceAOS_no_simd(const Boid *a, const int i, const int j) {
-    const float dx = a[i].x - a[j].x;
-    const float dy = a[i].y - a[j].y;
-    return dx * dx + dy * dy;
-}
