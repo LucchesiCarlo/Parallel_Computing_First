@@ -11,8 +11,8 @@
 #include <SFML/Graphics.hpp>
 #include <omp.h>
 
-#include "src/framegenSOA.h"
-#include "src/helpersSOA.h"
+#include "src/SOA/framegenSOA.h"
+#include "src/SOA/helpersSOA.h"
 
 int main(int argc, char **argv) {
 #ifdef _OPENMP

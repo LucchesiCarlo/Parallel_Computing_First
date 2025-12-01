@@ -12,8 +12,8 @@ def execute_test(source_dir, target, num, sec, out_dir, threads=1, iterations=6)
 
 
 def main():
-    release_dir = "./cmake-build-release/"
-    padding_dir = "./cmake-build-padding/"
+    release_dir = "../cmake-build-release/"
+    padding_dir = "../cmake-build-padding/"
     out_dir = "results/"
     argv = sys.argv
     padding = ("padding" in argv)

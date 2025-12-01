@@ -9,7 +9,7 @@
 #include <optional>
 #include <random>
 #include <SFML/Graphics.hpp>
-#include "src/framegenAOS.h"
+#include "src/AOS/framegenAOS.h"
 
 int main(int argc, char **argv) {
 #ifdef PADDING
