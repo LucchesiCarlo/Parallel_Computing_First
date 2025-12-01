@@ -44,7 +44,7 @@ void getParameters(const int argc, char **argv, int &n, double &seconds, int &th
     }
 }
 
-void initializeBoidsSoa(const Boids &boids, sf::CircleShape *shapes, const int N, const int WIDTH, const int HEIGHT,
+void initializeBoidsSOA(const Boids &boids, sf::CircleShape *shapes, const int N, const int WIDTH, const int HEIGHT,
                         const float MAX_SPEED, const float MIN_SPEED, long seed) {
     if (seed == -1)
         seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -69,20 +69,4 @@ void initializeBoidsSoa(const Boids &boids, sf::CircleShape *shapes, const int N
 void printBoidSOA(Boids boid, const int i, sf::Shape &shape, sf::RenderWindow &window) {
     shape.setPosition({boid.x[i], boid.y[i]});
     window.draw(shape);
-}
-
-void createBoidsSOA(Boids &boids, const int N) {
-    if (N <= 0)
-        return;
-    boids.x = new float[N];
-    boids.y = new float[N];
-    boids.vx = new float[N];
-    boids.vy = new float[N];
-}
-
-void deleteBoidsSoa(const Boids &boids) {
-    delete[] boids.x;
-    delete[] boids.y;
-    delete[] boids.vx;
-    delete[] boids.vy;
 }

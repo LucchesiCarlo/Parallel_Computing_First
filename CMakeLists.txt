@@ -47,36 +47,8 @@ elseif (CMAKE_BUILD_TYPE STREQUAL "Padding")
     add_definitions("-DPADDING=1")
 endif ()
 
-add_executable(sequential sequential.cpp src/helpersAOS.cpp)
-target_compile_features(sequential PRIVATE cxx_std_17)
-target_link_libraries(sequential PRIVATE SFML::Graphics)
-
-add_executable(parallel_AOS parallel_AOS.cpp src/helpersAOS.cpp)
-target_compile_features(parallel_AOS PRIVATE cxx_std_17)
-target_link_libraries(parallel_AOS PRIVATE SFML::Graphics)
-
-add_executable(parallel_SOA parallel_SOA.cpp src/helpersSOA.cpp)
-target_compile_features(parallel_SOA PRIVATE cxx_std_17)
-target_link_libraries(parallel_SOA PRIVATE SFML::Graphics)
-
-add_executable(parallel_AOS_simd parallel_AOS_simd.cpp src/helpersAOS.cpp)
-target_compile_features(parallel_AOS_simd PRIVATE cxx_std_17)
-target_link_libraries(parallel_AOS_simd PRIVATE SFML::Graphics)
-
-add_executable(parallel_SOA_simd parallel_SOA_simd.cpp src/helpersSOA.cpp)
-target_compile_features(parallel_SOA_simd PRIVATE cxx_std_17)
-target_link_libraries(parallel_SOA_simd PRIVATE SFML::Graphics)
-
-add_executable(parallel_AOS_simd_manual parallel_AOS_simd_manual.cpp src/helpersAOS.cpp)
-target_compile_features(parallel_AOS_simd_manual PRIVATE cxx_std_17)
-target_link_libraries(parallel_AOS_simd_manual PRIVATE SFML::Graphics)
-
-add_executable(parallel_SOA_simd_manual parallel_SOA_simd_manual.cpp src/helpersSOA.cpp)
-target_compile_features(parallel_SOA_simd_manual PRIVATE cxx_std_17)
-target_link_libraries(parallel_SOA_simd_manual PRIVATE SFML::Graphics)
-
-#===== New Implementation
-set(AOS_SOURCE main.cpp src/helpersAOS.cpp)
+set(AOS_SOURCE mainAOS.cpp src/helpersAOS.cpp)
+set(SOA_SOURCE mainSOA.cpp src/helpersSOA.cpp)
 
 add_executable(sequentialAOS ${AOS_SOURCE} src/sequentialgenAOS.cpp)
 target_compile_features(sequentialAOS PRIVATE cxx_std_17)
@@ -93,3 +65,15 @@ target_link_libraries(parallelSIMD_AOS PRIVATE SFML::Graphics)
 add_executable(parallelAVX_AOS ${AOS_SOURCE} src/parallelgenAVX_AOS.cpp)
 target_compile_features(parallelAVX_AOS PRIVATE cxx_std_17)
 target_link_libraries(parallelAVX_AOS PRIVATE SFML::Graphics)
+
+add_executable(parallelSOA ${SOA_SOURCE} src/parallelgenSOA.cpp)
+target_compile_features(parallelSOA PRIVATE cxx_std_17)
+target_link_libraries(parallelSOA PRIVATE SFML::Graphics)
+
+add_executable(parallelSIMD_SOA ${SOA_SOURCE} src/parallelgenSIMD_SOA.cpp)
+target_compile_features(parallelSIMD_SOA PRIVATE cxx_std_17)
+target_link_libraries(parallelSIMD_SOA PRIVATE SFML::Graphics)
+
+add_executable(parallelAVX_SOA ${SOA_SOURCE} src/parallelgenAVX_SOA.cpp)
+target_compile_features(parallelAVX_SOA PRIVATE cxx_std_17)
+target_link_libraries(parallelAVX_SOA PRIVATE SFML::Graphics)

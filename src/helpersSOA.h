@@ -22,12 +22,10 @@ struct Boids {
 
 void getParameters(int argc, char **argv, int &n, double &seconds, int &threads);
 
-void initializeBoidsSoa(const Boids &boids, sf::CircleShape *shapes, int N, int WIDTH, int HEIGHT,
+void initializeBoidsSOA(const Boids &boids, sf::CircleShape *shapes, int N, int WIDTH, int HEIGHT,
                         float MAX_SPEED, float MIN_SPEED, long seed = -1);
 
 void printBoidSOA(Boids boid, int i, sf::Shape &shape, sf::RenderWindow &window);
-
-void createBoidsSOA(Boids &boids, int N);
 
 #pragma omp declare simd
 inline float squareDistanceSOA(const Boids &a, const int i, const int j) {
@@ -37,7 +35,5 @@ inline float squareDistanceSOA(const Boids &a, const int i, const int j) {
 inline float squareDistanceSOA_no_simd(const Boids &a, const int i, const int j) {
     return static_cast<float>(std::pow((a.x[i] - a.x[j]), 2) + std::pow(a.y[i] - a.y[j], 2));
 }
-
-void deleteBoidsSoa(const Boids &boids);
 
 #endif //FIRST_ASSIGNMENT_HELPERSSOA_H
