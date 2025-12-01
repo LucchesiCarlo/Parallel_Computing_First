@@ -49,7 +49,10 @@ endif ()
 
 set(AOS_SOURCE mainAOS.cpp src/AOS/helpersAOS.cpp)
 set(SOA_SOURCE mainSOA.cpp src/SOA/helpersSOA.cpp)
+set(AOS_SIM simAOS.cpp src/AOS/helpersAOS.cpp)
+set(SOA_SIM simSOA.cpp src/SOA/helpersSOA.cpp)
 
+#=== Executables with the GUI
 add_executable(sequentialAOS ${AOS_SOURCE} src/AOS/sequentialgenAOS.cpp)
 target_compile_features(sequentialAOS PRIVATE cxx_std_17)
 target_link_libraries(sequentialAOS PRIVATE SFML::Graphics)
@@ -77,3 +80,33 @@ target_link_libraries(parallelSIMD_SOA PRIVATE SFML::Graphics)
 add_executable(parallelAVX_SOA ${SOA_SOURCE} src/SOA/parallelgenAVX_SOA.cpp)
 target_compile_features(parallelAVX_SOA PRIVATE cxx_std_17)
 target_link_libraries(parallelAVX_SOA PRIVATE SFML::Graphics)
+
+#===Simulation Executables
+add_executable(sequentialSimAOS ${AOS_SIM} src/AOS/sequentialgenAOS.cpp)
+target_compile_features(sequentialSimAOS PRIVATE cxx_std_17)
+target_link_libraries(sequentialSimAOS PRIVATE SFML::Graphics)
+
+add_executable(parallelSimAOS ${AOS_SIM} src/AOS/parallelgenAOS.cpp)
+target_compile_features(parallelSimAOS PRIVATE cxx_std_17)
+target_link_libraries(parallelSimAOS PRIVATE SFML::Graphics)
+
+add_executable(parallelSimSIMD_AOS ${AOS_SIM} src/AOS/parallelgenSIMD_AOS.cpp)
+target_compile_features(parallelSimSIMD_AOS PRIVATE cxx_std_17)
+target_link_libraries(parallelSimSIMD_AOS PRIVATE SFML::Graphics)
+
+add_executable(parallelSimAVX_AOS ${AOS_SIM} src/AOS/parallelgenAVX_AOS.cpp)
+target_compile_features(parallelSimAVX_AOS PRIVATE cxx_std_17)
+target_link_libraries(parallelSimAVX_AOS PRIVATE SFML::Graphics)
+
+
+add_executable(parallelSimSOA ${SOA_SIM} src/SOA/parallelgenSOA.cpp)
+target_compile_features(parallelSimSOA PRIVATE cxx_std_17)
+target_link_libraries(parallelSimSOA PRIVATE SFML::Graphics)
+
+add_executable(parallelSimSIMD_SOA ${SOA_SIM} src/SOA/parallelgenSIMD_SOA.cpp)
+target_compile_features(parallelSimSIMD_SOA PRIVATE cxx_std_17)
+target_link_libraries(parallelSimSIMD_SOA PRIVATE SFML::Graphics)
+
+add_executable(parallelSimAVX_SOA ${SOA_SIM} src/SOA/parallelgenAVX_SOA.cpp)
+target_compile_features(parallelSimAVX_SOA PRIVATE cxx_std_17)
+target_link_libraries(parallelSimAVX_SOA PRIVATE SFML::Graphics)

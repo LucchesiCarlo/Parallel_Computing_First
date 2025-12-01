@@ -20,7 +20,9 @@ struct Boids {
     float *vy;
 };
 
-void getParameters(int argc, char **argv, int &n, double &seconds, int &threads);
+void getParametersGUI(int argc, char **argv, int &n, double &seconds, int &threads);
+
+void getParametersSim(int argc, char **argv, int &n, int &iter, int &threads);
 
 void initializeBoidsSOA(const Boids &boids, sf::CircleShape *shapes, int N, int WIDTH, int HEIGHT,
                         float MAX_SPEED, float MIN_SPEED, long seed = -1);

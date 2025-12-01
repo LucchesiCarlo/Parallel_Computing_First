@@ -2,6 +2,7 @@
 // Created by carlo on 30/11/25.
 //
 #include <cmath>
+#include "helpersAOS.h"
 #include "framegenAOS.h"
 
 void generateFrame(Boid *&boids, Boid *&nextBoids, sf::CircleShape *shapes, const ExpParams &exp) {

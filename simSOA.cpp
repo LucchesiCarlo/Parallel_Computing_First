@@ -1,0 +1,57 @@
+//
+// Created by carlo on 30/11/25.
+//
+
+#include <chrono>
+#include <cmath>
+#include <iostream>
+#include <random>
+#include <SFML/Graphics.hpp>
+#include "src/SOA/framegenSOA.h"
+
+int main(int argc, char **argv) {
+#ifdef PADDING
+    std::cout << "Padding Enabled" << "\n";
+#endif
+    ExpParams exp;
+
+    getParametersSim(argc, argv, exp.N, exp.ITER, exp.THREADS);
+
+    Boids boids{};
+    Boids nextBoids{};
+
+    createBoidsSOA(boids, exp.N);
+    createBoidsSOA(nextBoids, exp.N);
+    /*
+     * Considering that boids number is constant, is better for performance to initialize all circle at once and only
+     * update their positions.
+     */
+
+    sf::CircleShape shapes[exp.N];
+    initializeBoidsSOA(boids, shapes, exp.N, exp.WIDTH, exp.HEIGHT, exp.MAX_SPEED, exp.MIN_SPEED);
+
+    const auto start = std::chrono::high_resolution_clock::now();
+
+    for (int i = 0; i < exp.ITER; i++) {
+        generateFrame(boids, nextBoids, shapes, exp);
+    }
+    const auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::duration<double> >(end - start);
+
+    FILE *output;
+    if (argc > 3) {
+        output = fopen(argv[3], "w");
+    } else {
+        output = fopen("output.txt", "w");
+    }
+    if (output == nullptr) {
+        std::cerr << "Could not open file due to an error." << std::endl;
+    } else {
+        fprintf(output, "%f", duration.count());
+        std::cout << "Time taken: " << duration.count() << "\n";
+        fclose(output);
+    }
+
+    deleteBoidsSOA(boids);
+    deleteBoidsSOA(nextBoids);
+}

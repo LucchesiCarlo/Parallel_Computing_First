@@ -27,7 +27,9 @@ struct Boid {
 };
 #endif
 
-void getParameters(int argc, char **argv, int &n, double &seconds, int &threads);
+void getParametersGUI(int argc, char **argv, int &n, double &seconds, int &threads);
+
+void getParametersSim(int argc, char **argv, int &n, int &iter, int &threads);
 
 #pragma omp declare simd
 void initializeBoidsAOS(Boid *boids, sf::CircleShape *shapes, int N, int WIDTH, int HEIGHT,

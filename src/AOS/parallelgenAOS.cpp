@@ -3,6 +3,7 @@
 //
 #include <cmath>
 #include <omp.h>
+#include "helpersAOS.h"
 #include "framegenAOS.h"
 
 void generateFrame(Boid *&boids, Boid *&nextBoids, sf::CircleShape *shapes, const ExpParams &exp) {

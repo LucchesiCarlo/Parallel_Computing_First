@@ -7,7 +7,7 @@
 #include <SFML/Graphics.hpp>
 #include "helpersSOA.h"
 
-void getParameters(const int argc, char **argv, int &n, double &seconds, int &threads) {
+void getParametersGUI(const int argc, char **argv, int &n, double &seconds, int &threads) {
     constexpr int N = 1000;
     constexpr double SECONDS = 10.;
     constexpr int THREADS = 10;
@@ -40,6 +40,35 @@ void getParameters(const int argc, char **argv, int &n, double &seconds, int &th
             }
         } catch (std::exception &) {
             threads = THREADS;
+        }
+    }
+}
+
+void getParametersSim(const int argc, char **argv, int &n, int &iter, int &threads) {
+    if (argc > 1) {
+        try {
+            n = std::stoi(argv[1]);
+            if (n < 1) {
+                n = 1;
+            }
+        } catch (std::exception &) {
+        }
+    }
+
+    if (argc > 2) {
+        try {
+            iter = std::stoi(argv[2]);
+        } catch (std::exception &) {
+        }
+    }
+
+    if (argc > 4) {
+        try {
+            threads = std::stoi(argv[4]);
+            if (threads < 1) {
+                threads = 1;
+            }
+        } catch (std::exception &) {
         }
     }
 }

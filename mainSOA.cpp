@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
 #endif
     ExpParams exp;
 
-    getParameters(argc, argv, exp.N, exp.SEC, exp.THREADS);
+    getParametersGUI(argc, argv, exp.N, exp.SEC, exp.THREADS);
 
     Boids boids{};
     Boids nextBoids{};

@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
 #endif
     ExpParams exp;
 
-    getParameters(argc, argv, exp.N, exp.SEC, exp.THREADS);
+    getParametersGUI(argc, argv, exp.N, exp.SEC, exp.THREADS);
 
     const unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::default_random_engine generator(seed);

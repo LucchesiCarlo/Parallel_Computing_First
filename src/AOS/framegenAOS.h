@@ -21,6 +21,7 @@ struct ExpParams {
     float TURN = 0.05;
     float EPSILON = 0.001;
     int N = 1000;
+    int ITER = 1000;
     double SEC = 10.;
     int THREADS = 8;
 };
