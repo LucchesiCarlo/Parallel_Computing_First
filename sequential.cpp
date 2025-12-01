@@ -5,19 +5,7 @@
 #include <optional>
 #include <random>
 #include <SFML/Graphics.hpp>
-#include "helpersSOA.cpp"
-
-struct Boid {
-    float x = 0;
-    float y = 0;
-
-    float vx = 0;
-    float vy = 0;
-};
-
-void printBoidAOS(Boid boid, sf::Shape &shape, sf::RenderWindow &window);
-
-inline float squareDistance(Boid a, Boid b);
+#include "src/helpersAOS.h"
 
 int main(int argc, char **argv) {
 #ifdef PADDING
@@ -100,7 +88,7 @@ int main(int argc, char **argv) {
             for (int j = 0; j < N; j++) {
                 if (i == j)
                     continue;
-                const float distance = squareDistance(boids[i], boids[j]);
+                const float distance = squareDistanceAOS(boids.get(), i, j);
                 if (distance < PROTECT * PROTECT) {
                     close_dx += boids[i].x - boids[j].x;
                     close_dy += boids[i].y - boids[j].y;
@@ -193,13 +181,4 @@ int main(int argc, char **argv) {
         }
         fclose(output);
     }
-}
-
-void printBoidAOS(const Boid boid, sf::Shape &shape, sf::RenderWindow &window) {
-    shape.setPosition({boid.x, boid.y});
-    window.draw(shape);
-}
-
-inline float squareDistance(const Boid a, const Boid b) {
-    return static_cast<float>(pow((a.x - b.x), 2) + pow(a.y - b.y, 2));
 }

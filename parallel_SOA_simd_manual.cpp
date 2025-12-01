@@ -7,7 +7,7 @@
 #include <SFML/Graphics.hpp>
 #include <omp.h>
 #include <immintrin.h>
-#include "helpersSOA.cpp"
+#include "src/helpersSOA.h"
 
 inline void horizontal_add_avx(__m256 a, __m256 b, float &res_a, float &res_b);
 

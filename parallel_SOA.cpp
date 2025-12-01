@@ -6,7 +6,7 @@
 #include <random>
 #include <SFML/Graphics.hpp>
 #include <omp.h>
-#include "helpersSOA.cpp"
+#include "src/helpersSOA.h"
 
 void printBoid(Boids boid, int i, sf::Shape &shape, sf::RenderWindow &window);
 

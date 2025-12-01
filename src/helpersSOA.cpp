@@ -3,17 +3,9 @@
 //
 
 #include <string>
-#include <cmath>
 #include <random>
 #include <SFML/Graphics.hpp>
-
-struct Boids {
-    float *x;
-    float *y;
-
-    float *vx;
-    float *vy;
-};
+#include "helpersSOA.h"
 
 void getParameters(const int argc, char **argv, int &n, double &seconds, int &threads) {
     constexpr int N = 1000;
@@ -53,7 +45,7 @@ void getParameters(const int argc, char **argv, int &n, double &seconds, int &th
 }
 
 void initializeBoidsSoa(const Boids &boids, sf::CircleShape *shapes, const int N, const int WIDTH, const int HEIGHT,
-                        const float MAX_SPEED, const float MIN_SPEED, long seed = -1) {
+                        const float MAX_SPEED, const float MIN_SPEED, long seed) {
     if (seed == -1)
         seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::default_random_engine generator(seed);
@@ -86,15 +78,6 @@ void createBoidsSOA(Boids &boids, const int N) {
     boids.y = new float[N];
     boids.vx = new float[N];
     boids.vy = new float[N];
-}
-
-#pragma omp declare simd
-inline float squareDistanceSOA(const Boids &a, const int i, const int j) {
-    return static_cast<float>(std::pow((a.x[i] - a.x[j]), 2) + std::pow(a.y[i] - a.y[j], 2));
-}
-
-inline float squareDistanceSOA_no_simd(const Boids &a, const int i, const int j) {
-    return static_cast<float>(std::pow((a.x[i] - a.x[j]), 2) + std::pow(a.y[i] - a.y[j], 2));
 }
 
 void deleteBoidsSoa(const Boids &boids) {

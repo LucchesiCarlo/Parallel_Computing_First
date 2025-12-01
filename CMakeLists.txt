@@ -47,7 +47,7 @@ elseif (CMAKE_BUILD_TYPE STREQUAL "Padding")
     add_definitions("-DPADDING=1")
 endif ()
 
-add_executable(sequential sequential.cpp)
+add_executable(sequential sequential.cpp src/helpersAOS.cpp)
 target_compile_features(sequential PRIVATE cxx_std_17)
 target_link_libraries(sequential PRIVATE SFML::Graphics)
 
@@ -55,7 +55,7 @@ add_executable(parallel_AOS parallel_AOS.cpp src/helpersAOS.cpp)
 target_compile_features(parallel_AOS PRIVATE cxx_std_17)
 target_link_libraries(parallel_AOS PRIVATE SFML::Graphics)
 
-add_executable(parallel_SOA parallel_SOA.cpp)
+add_executable(parallel_SOA parallel_SOA.cpp src/helpersSOA.cpp)
 target_compile_features(parallel_SOA PRIVATE cxx_std_17)
 target_link_libraries(parallel_SOA PRIVATE SFML::Graphics)
 
@@ -63,7 +63,7 @@ add_executable(parallel_AOS_simd parallel_AOS_simd.cpp src/helpersAOS.cpp)
 target_compile_features(parallel_AOS_simd PRIVATE cxx_std_17)
 target_link_libraries(parallel_AOS_simd PRIVATE SFML::Graphics)
 
-add_executable(parallel_SOA_simd parallel_SOA_simd.cpp)
+add_executable(parallel_SOA_simd parallel_SOA_simd.cpp src/helpersSOA.cpp)
 target_compile_features(parallel_SOA_simd PRIVATE cxx_std_17)
 target_link_libraries(parallel_SOA_simd PRIVATE SFML::Graphics)
 
@@ -71,6 +71,6 @@ add_executable(parallel_AOS_simd_manual parallel_AOS_simd_manual.cpp src/helpers
 target_compile_features(parallel_AOS_simd_manual PRIVATE cxx_std_17)
 target_link_libraries(parallel_AOS_simd_manual PRIVATE SFML::Graphics)
 
-add_executable(parallel_SOA_simd_manual parallel_SOA_simd_manual.cpp)
+add_executable(parallel_SOA_simd_manual parallel_SOA_simd_manual.cpp src/helpersSOA.cpp)
 target_compile_features(parallel_SOA_simd_manual PRIVATE cxx_std_17)
 target_link_libraries(parallel_SOA_simd_manual PRIVATE SFML::Graphics)
