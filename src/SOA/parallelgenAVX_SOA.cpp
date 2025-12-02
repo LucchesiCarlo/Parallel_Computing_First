@@ -183,7 +183,6 @@ void generateFrame(Boids &boids, Boids &nextBoids, sf::CircleShape *shapes, cons
                 boids.y[i] = exp.HEIGHT;
                 boids.vy[i] = 0;
             }
-            shapes[i].setPosition({boids.x[i], boids.y[i]});
         }
     } //End Parallel
 }

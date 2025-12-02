@@ -30,7 +30,7 @@ struct ExpParams {
 
 void createBoidsSOA(Boids &boids, int N);
 
-void generateFrame(Boids &boids, Boids &nextBoids, sf::CircleShape *shapes, const ExpParams &exp);
+void generateFrame(Boids &boids, Boids &nextBoids, const ExpParams &exp);
 
-void deleteBoidsSOA(Boids &boids);
+void deleteBoidsSOA(Boids & boids);
 #endif //FIRST_ASSIGNMENT_FRAMEGENSOA_H

@@ -5,7 +5,7 @@
 #include "helpersAOS.h"
 #include "framegenAOS.h"
 
-void generateFrame(Boid *&boids, Boid *&nextBoids, sf::CircleShape *shapes, const ExpParams &exp) {
+void generateFrame(Boid *&boids, Boid *&nextBoids, const ExpParams &exp) {
     for (int i = 0; i < exp.N; i++) {
         float close_dx = 0;
         float close_dy = 0;
@@ -88,6 +88,5 @@ void generateFrame(Boid *&boids, Boid *&nextBoids, sf::CircleShape *shapes, cons
             boids[i].y = exp.HEIGHT;
             boids[i].vy = 0;
         }
-        shapes[i].setPosition({boids[i].x, boids[i].y});
     }
 }

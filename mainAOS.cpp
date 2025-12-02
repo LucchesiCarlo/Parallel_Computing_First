@@ -19,9 +19,6 @@ int main(int argc, char **argv) {
 
     getParametersGUI(argc, argv, exp.N, exp.SEC, exp.THREADS);
 
-    const unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    std::default_random_engine generator(seed);
-
     Boid *boids = new Boid[exp.N];
     Boid *nextBoids = new Boid[exp.N];
     /*
@@ -30,22 +27,9 @@ int main(int argc, char **argv) {
      */
     sf::CircleShape shapes[exp.N];
     std::list<double> values;
+    std::list<double> sequential;
 
-    for (int i = 0; i < exp.N; i++) {
-        boids[i].x = static_cast<float>(generator() % exp.WIDTH);
-        boids[i].y = static_cast<float>(generator() % exp.HEIGHT);
-        boids[i].vx = static_cast<float>(generator() % (static_cast<int>(exp.MAX_SPEED - exp.MIN_SPEED))) + exp.
-                      MIN_SPEED;
-        boids[i].vy = static_cast<float>(generator() % (static_cast<int>(exp.MAX_SPEED - exp.MIN_SPEED))) + exp.
-                      MIN_SPEED;
-
-        sf::CircleShape circle(1);
-        circle.setFillColor(sf::Color::Black);
-        circle.setOutlineColor(sf::Color::White);
-        circle.setOutlineThickness(1.f);
-        circle.setOrigin(circle.getGeometricCenter());
-        shapes[i] = circle;
-    }
+    initializeBoidsAOS(boids, shapes, exp.N, exp.WIDTH, exp.HEIGHT, exp.MAX_SPEED, exp.MIN_SPEED, exp.THREADS);
 
     sf::RenderWindow window(sf::VideoMode({exp.WIDTH, exp.HEIGHT}), "Boids");
     window.setFramerateLimit(exp.FPS);
@@ -59,14 +43,20 @@ int main(int argc, char **argv) {
         auto start_frame = std::chrono::high_resolution_clock::now();
 
         generateFrame(boids, nextBoids, shapes, exp);
+
+        auto start_seq = std::chrono::high_resolution_clock::now();
         window.clear(sf::Color::Black);
         for (int i = 0; i < exp.N; i++) {
+            shapes[i].setPosition({boids[i].x, boids[i].y});
             window.draw(shapes[i]);
         }
+        auto end_seq = std::chrono::high_resolution_clock::now();
 
         auto end_frame = std::chrono::high_resolution_clock::now();
         auto frame = std::chrono::duration_cast<std::chrono::duration<double> >(end_frame - start_frame).count();
+        auto seq_frame = std::chrono::duration_cast<std::chrono::duration<double> >(end_seq - start_seq).count();
         values.push_back(frame);
+        sequential.push_back(seq_frame);
 
         window.display();
         auto now = std::chrono::high_resolution_clock::now();
@@ -90,6 +80,8 @@ int main(int argc, char **argv) {
         }
         fclose(output);
     }
+    std::cout << "Avg sequential section " << std::accumulate(sequential.begin(), sequential.end(), 0.) / static_cast<
+        double>(sequential.size()) << std::endl;
 
     delete[] boids;
     delete[] nextBoids;

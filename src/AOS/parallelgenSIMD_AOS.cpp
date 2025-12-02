@@ -4,6 +4,8 @@
 #include <cmath>
 #include <omp.h>
 #include <immintrin.h>
+#include <random>
+
 #include "framegenAOS.h"
 
 void generateFrame(Boid *&boids, Boid *&nextBoids, sf::CircleShape *shapes, const ExpParams &exp) {
@@ -88,7 +90,7 @@ void generateFrame(Boid *&boids, Boid *&nextBoids, sf::CircleShape *shapes, cons
 #pragma omp single
         std::swap(boids, nextBoids);
 
-#pragma omp for nowait
+#pragma omp for schedule(runtime) nowait
         for (int i = 0; i < exp.N; i++) {
             boids[i].x += boids[i].vx;
             boids[i].y += boids[i].vy;
@@ -107,7 +109,6 @@ void generateFrame(Boid *&boids, Boid *&nextBoids, sf::CircleShape *shapes, cons
                 boids[i].y = exp.HEIGHT;
                 boids[i].vy = 0;
             }
-            shapes[i].setPosition({boids[i].x, boids[i].y});
         }
     } //End Parallel
 }

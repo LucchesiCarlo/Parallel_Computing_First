@@ -4,6 +4,8 @@
 #include <cmath>
 #include <omp.h>
 #include <immintrin.h>
+#include <random>
+
 #include "framegenAOS.h"
 
 inline void horizontal_add_avx(__m256 a, __m256 b, float &res_a, float &res_b);
@@ -177,7 +179,6 @@ void generateFrame(Boid *&boids, Boid *&nextBoids, sf::CircleShape *shapes, cons
                 boids[i].y = exp.HEIGHT;
                 boids[i].vy = 0;
             }
-            shapes[i].setPosition({boids[i].x, boids[i].y});
         }
     } //End Parallel
 }

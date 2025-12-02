@@ -33,6 +33,7 @@ int main(int argc, char **argv) {
      */
     sf::CircleShape shapes[exp.N];
     std::list<double> values;
+    std::list<double> sequential;
 
     initializeBoidsSOA(boids, shapes, exp.N, exp.WIDTH, exp.HEIGHT, exp.MAX_SPEED, exp.MIN_SPEED);
 
@@ -50,14 +51,19 @@ int main(int argc, char **argv) {
 
         generateFrame(boids, nextBoids, shapes, exp);
 
+        auto start_seq = std::chrono::high_resolution_clock::now();
         window.clear(sf::Color::Black);
         for (int i = 0; i < exp.N; i++) {
+            shapes[i].setPosition({boids.x[i], boids.y[i]});
             window.draw(shapes[i]);
         }
+        auto end_seq = std::chrono::high_resolution_clock::now();
 
         auto end_frame = std::chrono::high_resolution_clock::now();
         auto frame = std::chrono::duration_cast<std::chrono::duration<double> >(end_frame - start_frame).count();
+        auto seq_frame = std::chrono::duration_cast<std::chrono::duration<double> >(end_seq - start_seq).count();
         values.push_back(frame);
+        sequential.push_back(seq_frame);
 
         window.display();
         auto now = std::chrono::high_resolution_clock::now();
@@ -81,6 +87,8 @@ int main(int argc, char **argv) {
         }
         fclose(output);
     }
+    std::cout << "Avg sequential section " << std::accumulate(sequential.begin(), sequential.end(), 0.) / static_cast<
+        double>(sequential.size()) << std::endl;
 
     deleteBoidsSOA(boids);
     deleteBoidsSOA(nextBoids);

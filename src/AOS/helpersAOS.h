@@ -31,7 +31,6 @@ void getParametersGUI(int argc, char **argv, int &n, double &seconds, int &threa
 
 void getParametersSim(int argc, char **argv, int &n, int &iter, int &threads);
 
-#pragma omp declare simd
 void initializeBoidsAOS(Boid *boids, sf::CircleShape *shapes, int N, int WIDTH, int HEIGHT,
                         float MAX_SPEED, float MIN_SPEED, long seed = -1);
 

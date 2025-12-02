@@ -26,5 +26,5 @@ struct ExpParams {
     int THREADS = 8;
 };
 
-void generateFrame(Boid *&boids, Boid *&nextBoids, sf::CircleShape *shapes, const ExpParams &exp);
+void generateFrame(Boid *&boids, Boid *&nextBoids, const ExpParams &exp);
 #endif //FIRST_ASSIGNMENT_FRAMEGENAOS_H
