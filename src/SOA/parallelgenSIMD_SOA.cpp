@@ -4,9 +4,9 @@
 #include <omp.h>
 #include "framegenSOA.h"
 
-void generateFrame(Boids &boids, Boids &nextBoids, sf::CircleShape *shapes, const ExpParams &exp) {
+void generateFrame(Boids &boids, Boids &nextBoids, const ExpParams &exp) {
     omp_set_num_threads(exp.THREADS);
-#pragma omp parallel default(none) shared(exp, boids, nextBoids, shapes)
+#pragma omp parallel default(none) shared(exp, boids, nextBoids)
     {
         //Start Parallel
 #pragma omp for schedule(runtime)

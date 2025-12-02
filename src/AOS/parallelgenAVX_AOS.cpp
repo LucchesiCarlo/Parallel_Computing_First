@@ -12,9 +12,9 @@ inline void horizontal_add_avx(__m256 a, __m256 b, float &res_a, float &res_b);
 
 inline void horizontal_add_avx(__m256i a, __m256i b, int &res_a, int &res_b);
 
-void generateFrame(Boid *&boids, Boid *&nextBoids, sf::CircleShape *shapes, const ExpParams &exp) {
+void generateFrame(Boid *&boids, Boid *&nextBoids, const ExpParams &exp) {
     omp_set_num_threads(exp.THREADS);
-#pragma omp parallel default(none) shared(exp, boids, nextBoids, shapes)
+#pragma omp parallel default(none) shared(exp, boids, nextBoids)
     {
         //Start Parallel
 #pragma omp for schedule(runtime)

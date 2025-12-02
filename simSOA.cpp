@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
     const auto start = std::chrono::high_resolution_clock::now();
 
     for (int i = 0; i < exp.ITER; i++) {
-        generateFrame(boids, nextBoids, shapes, exp);
+        generateFrame(boids, nextBoids, exp);
     }
     const auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::duration<double> >(end - start);

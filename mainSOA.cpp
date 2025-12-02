@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
 
         auto start_frame = std::chrono::high_resolution_clock::now();
 
-        generateFrame(boids, nextBoids, shapes, exp);
+        generateFrame(boids, nextBoids, exp);
 
         auto start_seq = std::chrono::high_resolution_clock::now();
         window.clear(sf::Color::Black);
