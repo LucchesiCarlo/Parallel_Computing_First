@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
      * update their positions.
      */
 
-    sf::CircleShape shapes[exp.N];
+    auto shapes = new sf::CircleShape[exp.N];
     initializeBoidsSOA(boids, shapes, exp.N, exp.WIDTH, exp.HEIGHT, exp.MAX_SPEED, exp.MIN_SPEED);
 
     const auto start = std::chrono::high_resolution_clock::now();
@@ -42,16 +42,17 @@ int main(int argc, char **argv) {
     if (argc > 3) {
         output = fopen(argv[3], "w");
     } else {
-        output = fopen("output.txt", "w");
+        output = fopen("output.csv", "w");
     }
     if (output == nullptr) {
         std::cerr << "Could not open file due to an error." << std::endl;
     } else {
-        fprintf(output, "%f", duration.count());
+        fprintf(output, "Time\n%f\n", duration.count());
         std::cout << "Time taken: " << duration.count() << "\n";
         fclose(output);
     }
 
+    delete[] shapes;
     deleteBoidsSOA(boids);
     deleteBoidsSOA(nextBoids);
 }
