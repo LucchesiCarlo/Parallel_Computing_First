@@ -77,29 +77,25 @@ void generateFrame(Boid *&boids, Boid *&nextBoids, const ExpParams &exp) {
                 nextBoids[i].vx *= exp.MAX_SPEED / speed;
                 nextBoids[i].vy *= exp.MAX_SPEED / speed;
             }
-        }
-#pragma omp single
-        std::swap(boids, nextBoids);
 
-#pragma omp for schedule(runtime) nowait
-        for (int i = 0; i < exp.N; i++) {
-            boids[i].x += boids[i].vx;
-            boids[i].y += boids[i].vy;
+            nextBoids[i].x += nextBoids[i].vx;
+            nextBoids[i].y += nextBoids[i].vy;
 
-            if (boids[i].x < 0) {
-                boids[i].x = 0;
-                boids[i].vx = 0;
-            } else if (boids[i].x > exp.WIDTH) {
-                boids[i].x = exp.WIDTH;
-                boids[i].vx = 0;
+            if (nextBoids[i].x < 0) {
+                nextBoids[i].x = 0;
+                nextBoids[i].vx = 0;
+            } else if (nextBoids[i].x > exp.WIDTH) {
+                nextBoids[i].x = exp.WIDTH;
+                nextBoids[i].vx = 0;
             }
-            if (boids[i].y < 0) {
-                boids[i].y = 0;
-                boids[i].vy = 0;
-            } else if (boids[i].y > exp.HEIGHT) {
-                boids[i].y = exp.HEIGHT;
-                boids[i].vy = 0;
+            if (nextBoids[i].y < 0) {
+                nextBoids[i].y = 0;
+                nextBoids[i].vy = 0;
+            } else if (nextBoids[i].y > exp.HEIGHT) {
+                nextBoids[i].y = exp.HEIGHT;
+                nextBoids[i].vy = 0;
             }
         }
     } //End Parallel
+    std::swap(boids, nextBoids);
 }
